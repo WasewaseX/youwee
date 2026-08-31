@@ -22,7 +22,14 @@ export interface DownloadJob {
   id: string;
   url: string;
   title?: string;
-  status: "queued" | "downloading" | "processing" | "uploading" | "completed" | "failed" | "cancelled";
+  status:
+    | 'queued'
+    | 'downloading'
+    | 'processing'
+    | 'uploading'
+    | 'completed'
+    | 'failed'
+    | 'cancelled';
   format?: string;
   quality?: string;
   progress: number;
@@ -61,26 +68,30 @@ export interface BackendAdapter {
     postProcessOptions?: Record<string, unknown>;
   }): Promise<{ id: string; status: string }>;
   getDownload(jobId: string): Promise<DownloadJob>;
-  getDownloads(params?: { limit?: number; offset?: number; status?: string }): Promise<DownloadJob[]>;
+  getDownloads(params?: {
+    limit?: number;
+    offset?: number;
+    status?: string;
+  }): Promise<DownloadJob[]>;
   cancelDownload(jobId: string): Promise<void>;
   subscribeToProgress(jobId: string, onEvent: (event: DownloadJob) => void): () => void;
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE || "/api";
+const API_BASE = import.meta.env.VITE_API_BASE || '/api';
 
 async function fetchWithAuth(path: string, options: RequestInit = {}): Promise<Response> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
-    credentials: "include",
+    credentials: 'include',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       ...options.headers,
     },
   });
 
   if (res.status === 401) {
-    window.location.href = "/login";
-    throw new Error("Unauthorized");
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
   }
 
   return res;
@@ -88,8 +99,8 @@ async function fetchWithAuth(path: string, options: RequestInit = {}): Promise<R
 
 export const webBackend: BackendAdapter = {
   async getMetadata(url: string) {
-    const res = await fetchWithAuth("/metadata", {
-      method: "POST",
+    const res = await fetchWithAuth('/metadata', {
+      method: 'POST',
       body: JSON.stringify({ url }),
     });
     return res.json();
@@ -101,8 +112,8 @@ export const webBackend: BackendAdapter = {
   },
 
   async createDownload(options) {
-    const res = await fetchWithAuth("/downloads", {
-      method: "POST",
+    const res = await fetchWithAuth('/downloads', {
+      method: 'POST',
       body: JSON.stringify(options),
     });
     return res.json();
@@ -115,16 +126,16 @@ export const webBackend: BackendAdapter = {
 
   async getDownloads(params) {
     const search = new URLSearchParams();
-    if (params?.limit) search.set("limit", params.limit.toString());
-    if (params?.offset) search.set("offset", params.offset.toString());
-    if (params?.status) search.set("status", params.status);
+    if (params?.limit) search.set('limit', params.limit.toString());
+    if (params?.offset) search.set('offset', params.offset.toString());
+    if (params?.status) search.set('status', params.status);
 
     const res = await fetchWithAuth(`/downloads?${search.toString()}`);
     return res.json();
   },
 
   async cancelDownload(jobId: string) {
-    const res = await fetchWithAuth(`/downloads/${jobId}/cancel`, { method: "POST" });
+    const res = await fetchWithAuth(`/downloads/${jobId}/cancel`, { method: 'POST' });
     return res.json();
   },
 
@@ -152,56 +163,56 @@ export const webBackend: BackendAdapter = {
 
 export const desktopBackend: BackendAdapter = {
   async getMetadata(url: string) {
-    if (typeof window !== "undefined" && (window as { __TAURI__?: unknown }).__TAURI__) {
-      const { invoke } = await import("@tauri-apps/api/core");
-      return invoke("get_video_info", { url });
+    if (typeof window !== 'undefined' && (window as { __TAURI__?: unknown }).__TAURI__) {
+      const { invoke } = await import('@tauri-apps/api/core');
+      return invoke('get_video_info', { url });
     }
-    throw new Error("Tauri not available");
+    throw new Error('Tauri not available');
   },
 
   async getMetadataResult(jobId: string) {
-    if (typeof window !== "undefined" && (window as { __TAURI__?: unknown }).__TAURI__) {
-      const { invoke } = await import("@tauri-apps/api/core");
-      return invoke("get_download_job", { jobId });
+    if (typeof window !== 'undefined' && (window as { __TAURI__?: unknown }).__TAURI__) {
+      const { invoke } = await import('@tauri-apps/api/core');
+      return invoke('get_download_job', { jobId });
     }
-    throw new Error("Tauri not available");
+    throw new Error('Tauri not available');
   },
 
   async createDownload(options) {
-    if (typeof window !== "undefined" && (window as { __TAURI__?: unknown }).__TAURI__) {
-      const { invoke } = await import("@tauri-apps/api/core");
-      return invoke("download_video", options);
+    if (typeof window !== 'undefined' && (window as { __TAURI__?: unknown }).__TAURI__) {
+      const { invoke } = await import('@tauri-apps/api/core');
+      return invoke('download_video', options);
     }
-    throw new Error("Tauri not available");
+    throw new Error('Tauri not available');
   },
 
   async getDownload(jobId: string) {
-    if (typeof window !== "undefined" && (window as { __TAURI__?: unknown }).__TAURI__) {
-      const { invoke } = await import("@tauri-apps/api/core");
-      return invoke("get_download_job", { jobId });
+    if (typeof window !== 'undefined' && (window as { __TAURI__?: unknown }).__TAURI__) {
+      const { invoke } = await import('@tauri-apps/api/core');
+      return invoke('get_download_job', { jobId });
     }
-    throw new Error("Tauri not available");
+    throw new Error('Tauri not available');
   },
 
   async getDownloads(params) {
-    if (typeof window !== "undefined" && (window as { __TAURI__?: unknown }).__TAURI__) {
-      const { invoke } = await import("@tauri-apps/api/core");
-      return invoke("get_download_jobs", params || {});
+    if (typeof window !== 'undefined' && (window as { __TAURI__?: unknown }).__TAURI__) {
+      const { invoke } = await import('@tauri-apps/api/core');
+      return invoke('get_download_jobs', params || {});
     }
-    throw new Error("Tauri not available");
+    throw new Error('Tauri not available');
   },
 
   async cancelDownload(jobId: string) {
-    if (typeof window !== "undefined" && (window as { __TAURI__?: unknown }).__TAURI__) {
-      const { invoke } = await import("@tauri-apps/api/core");
-      return invoke("stop_download", { jobId });
+    if (typeof window !== 'undefined' && (window as { __TAURI__?: unknown }).__TAURI__) {
+      const { invoke } = await import('@tauri-apps/api/core');
+      return invoke('stop_download', { jobId });
     }
-    throw new Error("Tauri not available");
+    throw new Error('Tauri not available');
   },
 
   subscribeToProgress(jobId: string, onEvent: (event: DownloadJob) => void) {
-    if (typeof window !== "undefined" && (window as { __TAURI__?: unknown }).__TAURI__) {
-      import("@tauri-apps/api/event").then(({ listen }) => {
+    if (typeof window !== 'undefined' && (window as { __TAURI__?: unknown }).__TAURI__) {
+      import('@tauri-apps/api/event').then(({ listen }) => {
         listen(`download-progress-${jobId}`, (event) => {
           onEvent(event.payload as DownloadJob);
         });
@@ -212,9 +223,9 @@ export const desktopBackend: BackendAdapter = {
 };
 
 export function getBackend(): BackendAdapter {
-  const isWeb = import.meta.env.VITE_WEB_MODE === "true" ||
-    (typeof window !== "undefined" && !!(window as { __TAURI__?: unknown }).__TAURI__ === false);
+  const isWeb =
+    import.meta.env.VITE_WEB_MODE === 'true' ||
+    (typeof window !== 'undefined' && !!(window as { __TAURI__?: unknown }).__TAURI__ === false);
 
   return isWeb ? webBackend : desktopBackend;
 }
-

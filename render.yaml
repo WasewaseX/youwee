@@ -14,7 +14,7 @@ services:
     dockerfilePath: ./Dockerfile.web
     dockerContext: .
     plan: free
-    region: frankfort
+    region: frankfurt
     healthCheckPath: /api/health
     envVars:
       - key: DATABASE_URL

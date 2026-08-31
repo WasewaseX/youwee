@@ -67,12 +67,14 @@ export default defineConfig(() => {
       },
     },
     server: {
-      proxy: isWeb ? {
-        '/api': {
-          target: 'http://localhost:10000',
-          changeOrigin: true,
-        },
-      } : undefined,
+      proxy: isWeb
+        ? {
+            '/api': {
+              target: 'http://localhost:10000',
+              changeOrigin: true,
+            },
+          }
+        : undefined,
     },
   };
 });

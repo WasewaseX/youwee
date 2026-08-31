@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from "react";
-import { getBackend, type User } from "@/lib/backend";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+import { getBackend, type User } from '@/lib/backend';
 
 interface AuthContextType {
   user: User | null;
@@ -20,7 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const backend = getBackend();
       if (backend === getBackend()) {
-        const res = await fetch("/api/auth/me", { credentials: "include" });
+        const res = await fetch('/api/auth/me', { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
@@ -40,16 +40,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshUser]);
 
   const login = async (email: string, password: string) => {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ email, password }),
     });
 
     if (!res.ok) {
       const error = await res.json();
-      throw new Error(error.error || "Login failed");
+      throw new Error(error.error || 'Login failed');
     }
 
     const data = await res.json();
@@ -57,16 +57,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (email: string, password: string, name?: string) => {
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ email, password, name }),
     });
 
     if (!res.ok) {
       const error = await res.json();
-      throw new Error(error.error || "Registration failed");
+      throw new Error(error.error || 'Registration failed');
     }
 
     const data = await res.json();
@@ -74,9 +74,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    const res = await fetch("/api/auth/logout", {
-      method: "POST",
-      credentials: "include",
+    const res = await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
     });
 
     if (res.ok) {
@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 }

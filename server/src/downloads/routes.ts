@@ -1,10 +1,9 @@
-import { Hono } from "hono";
-import { z } from "zod";
-import { db } from "../db/index.js";
-import { downloadJobs, downloadFiles } from "../db/schema.js";
-import { eq, and, desc } from "drizzle-orm";
-import { nanoid } from "nanoid";
-import { downloadQueue, type DownloadJobData } from "../queue/index.js";
+import { and, desc, eq } from 'drizzle-orm';
+import { Hono } from 'hono';
+import { z } from 'zod';
+import { db } from '../db/index.js';
+import { type downloadFiles, downloadJobs } from '../db/schema.js';
+import { type DownloadJobData, downloadQueue, redis } from '../queue/index.js';
 
 interface SessionPayload {
   userId: string;
@@ -29,17 +28,17 @@ const createDownloadSchema = z.object({
   parentJobId: z.string().uuid().optional(),
 });
 
-downloads.post("/", async (c) => {
-  const session = c.get("session");
+downloads.post('/', async (c) => {
+  const session = c.get('session');
   if (!session) {
-    return c.json({ error: "Unauthorized" }, 401);
+    return c.json({ error: 'Unauthorized' }, 401);
   }
 
   try {
     const body = await c.req.json();
     const data = createDownloadSchema.parse(body);
 
-    const jobId = `dl_${nanoid()}`;
+    const jobId = crypto.randomUUID();
 
     await db.insert(downloadJobs).values({
       id: jobId,
@@ -50,44 +49,47 @@ downloads.post("/", async (c) => {
       quality: data.quality,
       subtitleOptions: data.subtitleOptions,
       postProcessOptions: data.postProcessOptions,
-      status: "queued",
+      status: 'queued',
     });
 
     const jobData: DownloadJobData = {
       jobId,
       url: data.url,
-      format: data.format || "mp4",
-      quality: data.quality || "720p",
+      format: data.format || 'mp4',
+      quality: data.quality || '720p',
       subtitleOptions: data.subtitleOptions,
       postProcessOptions: data.postProcessOptions,
       userId: session.userId,
     };
 
-    await downloadQueue.add("download", jobData, {
+    await downloadQueue.add('download', jobData, {
       jobId,
       priority: 10,
     });
 
-    return c.json({ id: jobId, status: "queued" });
+    return c.json({ id: jobId, status: 'queued' });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return c.json({ error: "Validation failed", details: error.errors }, 400);
+      return c.json({ error: 'Validation failed', details: error.errors }, 400);
     }
-    return c.json({ error: error instanceof Error ? error.message : "Failed to create download job" }, 500);
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Failed to create download job' },
+      500,
+    );
   }
 });
 
-downloads.get("/", async (c) => {
-  const session = c.get("session");
+downloads.get('/', async (c) => {
+  const session = c.get('session');
   if (!session) {
-    return c.json({ error: "Unauthorized" }, 401);
+    return c.json({ error: 'Unauthorized' }, 401);
   }
 
-  const limit = Math.min(parseInt(c.req.query("limit") || "50"), 100);
-  const offset = parseInt(c.req.query("offset") || "0");
-  const status = c.req.query("status");
+  const limit = Math.min(parseInt(c.req.query('limit') || '50', 10), 100);
+  const offset = parseInt(c.req.query('offset') || '0', 10);
+  const status = c.req.query('status');
 
-  const jobs = await db.query.downloadJobs.findMany({
+  const jobs = (await db.query.downloadJobs.findMany({
     where: status
       ? and(eq(downloadJobs.userId, session.userId), eq(downloadJobs.status, status))
       : eq(downloadJobs.userId, session.userId),
@@ -97,52 +99,53 @@ downloads.get("/", async (c) => {
     with: {
       files: true,
     },
-  }) as (typeof downloadJobs.$inferSelect & { files: typeof downloadFiles.$inferSelect[] })[];
+  })) as (typeof downloadJobs.$inferSelect & { files: (typeof downloadFiles.$inferSelect)[] })[];
 
-  return c.json(jobs.map(job => ({
-    id: job.id,
-    url: job.url,
-    title: job.title,
-    status: job.status,
-    format: job.format,
-    quality: job.quality,
-    progress: job.progress,
-    speed: job.speed,
-    eta: job.eta,
-    errorMessage: job.errorMessage,
-    parentJobId: job.parentJobId,
-    createdAt: job.createdAt,
-    startedAt: job.startedAt,
-    completedAt: job.completedAt,
-    files: job.files.map(f => ({
-      id: f.id,
-      fileName: f.fileName,
-      fileSize: f.fileSize,
-      mimeType: f.mimeType,
+  return c.json(
+    jobs.map((job) => ({
+      id: job.id,
+      url: job.url,
+      title: job.title,
+      status: job.status,
+      format: job.format,
+      quality: job.quality,
+      progress: job.progress,
+      speed: job.speed,
+      eta: job.eta,
+      errorMessage: job.errorMessage,
+      parentJobId: job.parentJobId,
+      createdAt: job.createdAt,
+      startedAt: job.startedAt,
+      completedAt: job.completedAt,
+      files: job.files.map((f) => ({
+        id: f.id,
+        fileName: f.fileName,
+        fileSize: f.fileSize,
+        mimeType: f.mimeType,
+      })),
     })),
-  })));
+  );
 });
 
-downloads.get("/:jobId", async (c) => {
-  const session = c.get("session");
+downloads.get('/:jobId', async (c) => {
+  const session = c.get('session');
   if (!session) {
-    return c.json({ error: "Unauthorized" }, 401);
+    return c.json({ error: 'Unauthorized' }, 401);
   }
 
-  const jobId = c.req.param("jobId");
+  const jobId = c.req.param('jobId');
 
-  const job = await db.query.downloadJobs.findFirst({
-    where: and(
-      eq(downloadJobs.id, jobId),
-      eq(downloadJobs.userId, session.userId)
-    ),
+  const job = (await db.query.downloadJobs.findFirst({
+    where: and(eq(downloadJobs.id, jobId), eq(downloadJobs.userId, session.userId)),
     with: {
       files: true,
     },
-  }) as (typeof downloadJobs.$inferSelect & { files: typeof downloadFiles.$inferSelect[] }) | undefined;
+  })) as
+    | (typeof downloadJobs.$inferSelect & { files: (typeof downloadFiles.$inferSelect)[] })
+    | undefined;
 
   if (!job) {
-    return c.json({ error: "Job not found" }, 404);
+    return c.json({ error: 'Job not found' }, 404);
   }
 
   return c.json({
@@ -162,7 +165,7 @@ downloads.get("/:jobId", async (c) => {
     createdAt: job.createdAt,
     startedAt: job.startedAt,
     completedAt: job.completedAt,
-    files: job.files.map(f => ({
+    files: job.files.map((f) => ({
       id: f.id,
       fileName: f.fileName,
       fileSize: f.fileSize,
@@ -171,91 +174,90 @@ downloads.get("/:jobId", async (c) => {
   });
 });
 
-downloads.post("/:jobId/cancel", async (c) => {
-  const session = c.get("session");
+downloads.post('/:jobId/cancel', async (c) => {
+  const session = c.get('session');
   if (!session) {
-    return c.json({ error: "Unauthorized" }, 401);
+    return c.json({ error: 'Unauthorized' }, 401);
   }
 
-  const jobId = c.req.param("jobId");
+  const jobId = c.req.param('jobId');
 
   const job = await db.query.downloadJobs.findFirst({
-    where: and(
-      eq(downloadJobs.id, jobId),
-      eq(downloadJobs.userId, session.userId)
-    ),
+    where: and(eq(downloadJobs.id, jobId), eq(downloadJobs.userId, session.userId)),
   });
 
   if (!job) {
-    return c.json({ error: "Job not found" }, 404);
+    return c.json({ error: 'Job not found' }, 404);
   }
 
-  if (!["queued", "downloading", "processing"].includes(job.status)) {
-    return c.json({ error: "Job cannot be cancelled" }, 400);
+  if (!['queued', 'downloading', 'processing'].includes(job.status)) {
+    return c.json({ error: 'Job cannot be cancelled' }, 400);
   }
 
-  await db.update(downloadJobs)
-    .set({ status: "cancelled", updatedAt: new Date() })
+  await db
+    .update(downloadJobs)
+    .set({ status: 'cancelled', updatedAt: new Date() })
     .where(eq(downloadJobs.id, jobId));
 
   await downloadQueue.remove(jobId);
 
+  await redis.publish(`job:${jobId}:cancel`, 'cancel');
+
   return c.json({ success: true });
 });
 
-downloads.get("/:jobId/events", async (c) => {
-  const session = c.get("session");
+downloads.get('/:jobId/events', async (c) => {
+  const session = c.get('session');
   if (!session) {
-    return c.json({ error: "Unauthorized" }, 401);
+    return c.json({ error: 'Unauthorized' }, 401);
   }
 
-  const jobId = c.req.param("jobId");
+  const jobId = c.req.param('jobId');
 
   const job = await db.query.downloadJobs.findFirst({
-    where: and(
-      eq(downloadJobs.id, jobId),
-      eq(downloadJobs.userId, session.userId)
-    ),
+    where: and(eq(downloadJobs.id, jobId), eq(downloadJobs.userId, session.userId)),
   });
 
   if (!job) {
-    return c.json({ error: "Job not found" }, 404);
+    return c.json({ error: 'Job not found' }, 404);
   }
 
   const encoder = new TextEncoder();
+  let subscribed = false;
+
   const stream = new ReadableStream({
-    start(controller) {
+    async start(controller) {
       const send = (data: unknown) => {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
       };
 
       send({ status: job.status, progress: job.progress });
 
-      const interval = setInterval(async () => {
-        const current = await db.query.downloadJobs.findFirst({
-          where: eq(downloadJobs.id, jobId),
-        });
+      const subscriber = redis.duplicate();
+      await subscriber.subscribe(`job:${jobId}:progress`);
+      subscribed = true;
 
-        if (current) {
-          send({
-            status: current.status,
-            progress: current.progress,
-            speed: current.speed,
-            eta: current.eta,
-          });
-
-          if (["completed", "failed", "cancelled"].includes(current.status)) {
-            clearInterval(interval);
-            controller.close();
+      subscriber.on('message', (channel, message) => {
+        if (channel === `job:${jobId}:progress`) {
+          try {
+            const data = JSON.parse(message);
+            send(data);
+            if (['completed', 'failed', 'cancelled'].includes(data.status)) {
+              subscriber.unsubscribe(`job:${jobId}:progress`);
+              subscriber.quit();
+              controller.close();
+            }
+          } catch {
+            // ignore parse errors
           }
-        } else {
-          clearInterval(interval);
-          controller.close();
         }
-      }, 1000);
+      });
 
-      c.req.raw.signal.addEventListener("abort", () => {
-        clearInterval(interval);
+      c.req.raw.signal.addEventListener('abort', async () => {
+        if (subscribed) {
+          await subscriber.unsubscribe(`job:${jobId}:progress`);
+          await subscriber.quit();
+        }
         controller.close();
       });
     },
@@ -263,9 +265,9 @@ downloads.get("/:jobId/events", async (c) => {
 
   return new Response(stream, {
     headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      "Connection": "keep-alive",
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
     },
   });
 });

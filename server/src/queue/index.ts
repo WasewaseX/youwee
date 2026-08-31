@@ -1,11 +1,11 @@
-import { Queue, QueueEvents } from "bullmq";
-import RedisModule from "ioredis";
+import { Queue, QueueEvents } from 'bullmq';
+import RedisModule from 'ioredis';
 
 const Redis = RedisModule.default || RedisModule;
 
-const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
+const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
-const redis = new Redis(redisUrl, {
+export const redis = new Redis(redisUrl, {
   maxRetriesPerRequest: 3,
   retryStrategy: (times: number) => Math.min(times * 50, 2000),
   lazyConnect: true,
@@ -13,12 +13,12 @@ const redis = new Redis(redisUrl, {
 
 await redis.connect();
 
-export const downloadQueue = new Queue("downloads", {
+export const downloadQueue = new Queue('downloads', {
   connection: redis,
   defaultJobOptions: {
     attempts: 3,
     backoff: {
-      type: "exponential",
+      type: 'exponential',
       delay: 1000,
     },
     removeOnComplete: 100,
@@ -26,7 +26,7 @@ export const downloadQueue = new Queue("downloads", {
   },
 });
 
-export const queueEvents = new QueueEvents("downloads", { connection: redis });
+export const queueEvents = new QueueEvents('downloads', { connection: redis });
 
 export type DownloadJobData = {
   jobId: string;
@@ -43,8 +43,6 @@ export type MetadataJobData = {
   url: string;
   userId: string;
 };
-
-export { redis };
 
 export async function closeQueue() {
   await downloadQueue.close();
