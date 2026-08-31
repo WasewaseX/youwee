@@ -49,8 +49,8 @@ app.route('/api/files', files);
 const isWeb = process.env.VITE_WEB_MODE === 'true';
 
 if (isWeb) {
-  app.use('/*', serveStatic({ root: './dist' }));
-  app.get('/*', serveStatic({ path: './dist/index.html' }));
+  app.use('/*', serveStatic({ root: './dist/public' }));
+  app.get('/*', serveStatic({ path: './dist/public/index.html' }));
 }
 
 export default app;
