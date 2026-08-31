@@ -31,7 +31,13 @@ import postgres from 'postgres';
 
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
-const redis = new Redis(redisUrl, {
+const redisCommand = new Redis(redisUrl, {
+  maxRetriesPerRequest: 3,
+  retryStrategy: (times: number) => Math.min(times * 50, 2000),
+  lazyConnect: true,
+});
+
+const redisSubscriber = new Redis(redisUrl, {
   maxRetriesPerRequest: 3,
   retryStrategy: (times: number) => Math.min(times * 50, 2000),
   lazyConnect: true,
@@ -40,7 +46,7 @@ const redis = new Redis(redisUrl, {
 const sql = postgres(process.env.DATABASE_URL || '', { max: 5 });
 const db = drizzle(sql);
 
-const users = pgTable('users', {
+const _users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: varchar('email', { length: 255 }).notNull().unique(),
   passwordHash: varchar('password_hash', { length: 255 }).notNull(),
@@ -50,18 +56,6 @@ const users = pgTable('users', {
   emailVerified: boolean('email_verified').default(false).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-});
-
-const _sessions = pgTable('sessions', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  tokenHash: varchar('token_hash', { length: 255 }).notNull().unique(),
-  userAgent: text('user_agent'),
-  ipAddress: varchar('ip_address', { length: 45 }),
-  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
 
 const downloadJobs = pgTable('download_jobs', {
@@ -80,6 +74,7 @@ const downloadJobs = pgTable('download_jobs', {
   speed: varchar('speed', { length: 50 }),
   eta: integer('eta'),
   errorMessage: text('error_message'),
+  metadata: jsonb('metadata'),
   queuedAt: timestamp('queued_at', { withTimezone: true }).defaultNow().notNull(),
   startedAt: timestamp('started_at', { withTimezone: true }),
   completedAt: timestamp('completed_at', { withTimezone: true }),
@@ -115,7 +110,45 @@ if (!existsSync(TEMP_DIR)) {
   mkdirSync(TEMP_DIR, { recursive: true });
 }
 
-const activeProcesses = new Map<string, ChildProcess>();
+const ALLOWED_FORMATS = new Set(['mp4', 'webm', 'mkv', 'mp3', 'm4a', 'opus']);
+const ALLOWED_QUALITIES = new Set([
+  '144p',
+  '240p',
+  '360p',
+  '480p',
+  '720p',
+  '1080p',
+  '1440p',
+  '2160p',
+  '4320p',
+  'best',
+  'worst',
+]);
+
+function getMimeType(format: string): string {
+  switch (format) {
+    case 'mp4':
+      return 'video/mp4';
+    case 'webm':
+      return 'video/webm';
+    case 'mkv':
+      return 'video/x-matroska';
+    case 'mp3':
+      return 'audio/mpeg';
+    case 'm4a':
+      return 'audio/mp4';
+    case 'opus':
+      return 'audio/opus';
+    default:
+      return 'application/octet-stream';
+  }
+}
+
+function sanitizeFileName(name: string): string {
+  return name.replace(/[^a-zA-Z0-9._-]/g, '_');
+}
+
+const activeProcesses = new Map<string, { ytDlp?: ChildProcess; ffmpeg?: ChildProcess }>();
 
 async function updateJobStatus(
   jobId: string,
@@ -126,7 +159,7 @@ async function updateJobStatus(
     .update(downloadJobs)
     .set({ status, ...updates, updatedAt: new Date() })
     .where(eq(downloadJobs.id, jobId));
-  await redis.publish(`job:${jobId}:progress`, JSON.stringify({ status, ...updates }));
+  await redisCommand.publish(`job:${jobId}:progress`, JSON.stringify({ status, ...updates }));
 }
 
 function runYtDlp(args: string[]): Promise<{ code: number; stdout: string; stderr: string }> {
@@ -142,10 +175,11 @@ function runYtDlp(args: string[]): Promise<{ code: number; stdout: string; stder
     });
     child.on('close', (code) => resolve({ code: code || 0, stdout, stderr }));
     child.on('error', (err) => resolve({ code: -1, stdout, stderr: err.message }));
+    return child;
   });
 }
 
-function runFfmpeg(args: string[]): Promise<{ code: number; stdout: string; stderr: string }> {
+function _runFfmpeg(args: string[]): Promise<{ code: number; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
     const child = spawn('ffmpeg', args, { stdio: ['ignore', 'pipe', 'pipe'] });
     let stdout = '';
@@ -158,6 +192,7 @@ function runFfmpeg(args: string[]): Promise<{ code: number; stdout: string; stde
     });
     child.on('close', (code) => resolve({ code: code || 0, stdout, stderr }));
     child.on('error', (err) => resolve({ code: -1, stdout, stderr: err.message }));
+    return child;
   });
 }
 
@@ -197,7 +232,7 @@ type DownloadJobData = {
   format: string;
   quality: string;
   subtitleOptions?: { langs?: string[] } & Record<string, unknown>;
-  postProcessOptions?: Record<string, unknown>;
+  postProcessOptions?: { convert?: string } & Record<string, unknown>;
   userId: string;
 };
 
@@ -205,9 +240,20 @@ type MetadataJobData = { jobId: string; url: string; userId: string };
 
 async function downloadVideo(jobData: DownloadJobData): Promise<string> {
   const { jobId, url, format, quality, subtitleOptions, postProcessOptions, userId } = jobData;
+
+  if (!ALLOWED_FORMATS.has(format)) {
+    throw new Error(`Invalid format: ${format}`);
+  }
+  if (!ALLOWED_QUALITIES.has(quality)) {
+    throw new Error(`Invalid quality: ${quality}`);
+  }
+  if (postProcessOptions?.convert && !ALLOWED_FORMATS.has(postProcessOptions.convert)) {
+    throw new Error(`Invalid conversion format: ${postProcessOptions.convert}`);
+  }
+
   await updateJobStatus(jobId, 'downloading', { startedAt: new Date() });
 
-  const tempFile = join(TEMP_DIR, `${jobId}.${format}`);
+  const tempFile = join(TEMP_DIR, `${sanitizeFileName(jobId)}.${format}`);
   const outputTemplate = tempFile.replace(/\.[^.]+$/, '.%(ext)s');
   const ytDlpArgs = [
     '-f',
@@ -232,12 +278,38 @@ async function downloadVideo(jobData: DownloadJobData): Promise<string> {
     );
   }
 
-  const { code, stderr } = await runYtDlp(ytDlpArgs);
-  if (code !== 0) throw new Error(`yt-dlp failed: ${stderr}`);
+  const ytDlpChild = spawn('yt-dlp', ytDlpArgs, { stdio: ['ignore', 'pipe', 'pipe'] });
+  activeProcesses.set(jobId, { ytDlp: ytDlpChild });
+
+  let ytDlpStdout = '';
+  let ytDlpStderr = '';
+  ytDlpChild.stdout.on('data', (data) => {
+    ytDlpStdout += data.toString();
+  });
+  ytDlpChild.stderr.on('data', (data) => {
+    ytDlpStderr += data.toString();
+  });
+
+  const ytDlpResult = await new Promise<{ code: number; stdout: string; stderr: string }>(
+    (resolve) => {
+      ytDlpChild.on('close', (code) =>
+        resolve({ code: code || 0, stdout: ytDlpStdout, stderr: ytDlpStderr }),
+      );
+      ytDlpChild.on('error', (err) =>
+        resolve({ code: -1, stdout: ytDlpStdout, stderr: err.message }),
+      );
+    },
+  );
+
+  activeProcesses.delete(jobId);
+
+  if (ytDlpResult.code !== 0) throw new Error(`yt-dlp failed: ${ytDlpResult.stderr}`);
 
   const actualFile = tempFile.replace(/\.[^.]+$/, `.${format}`);
   if (!existsSync(actualFile)) {
-    const files = readdirSync(TEMP_DIR).filter((f: string) => f.startsWith(jobId));
+    const files = readdirSync(TEMP_DIR).filter((f: string) =>
+      f.startsWith(sanitizeFileName(jobId)),
+    );
     if (files.length > 0) return join(TEMP_DIR, files[0]);
     throw new Error('Downloaded file not found');
   }
@@ -245,46 +317,81 @@ async function downloadVideo(jobData: DownloadJobData): Promise<string> {
   await updateJobStatus(jobId, 'processing');
   let finalFile = actualFile;
   if (postProcessOptions?.convert) {
-    const convertedFile = join(TEMP_DIR, `${jobId}_converted.${postProcessOptions.convert}`);
+    const convertedFile = join(
+      TEMP_DIR,
+      `${sanitizeFileName(jobId)}_converted.${postProcessOptions.convert}`,
+    );
     await updateJobStatus(jobId, 'processing', { progress: 50 });
-    const { code } = await runFfmpeg([
-      '-i',
-      actualFile,
-      '-c:v',
-      'libx264',
-      '-c:a',
-      'aac',
-      '-preset',
-      'medium',
-      '-crf',
-      '23',
-      convertedFile,
-    ]);
-    if (code === 0 && existsSync(convertedFile)) {
+
+    const ffmpegChild = spawn(
+      'ffmpeg',
+      [
+        '-i',
+        actualFile,
+        '-c:v',
+        'libx264',
+        '-c:a',
+        'aac',
+        '-preset',
+        'medium',
+        '-crf',
+        '23',
+        convertedFile,
+      ],
+      { stdio: ['ignore', 'pipe', 'pipe'] },
+    );
+
+    activeProcesses.set(jobId, { ffmpeg: ffmpegChild });
+
+    let ffmpegStdout = '';
+    let ffmpegStderr = '';
+    ffmpegChild.stdout.on('data', (data) => {
+      ffmpegStdout += data.toString();
+    });
+    ffmpegChild.stderr.on('data', (data) => {
+      ffmpegStderr += data.toString();
+    });
+
+    const ffmpegResult = await new Promise<{ code: number; stdout: string; stderr: string }>(
+      (resolve) => {
+        ffmpegChild.on('close', (code) =>
+          resolve({ code: code || 0, stdout: ffmpegStdout, stderr: ffmpegStderr }),
+        );
+        ffmpegChild.on('error', (err) =>
+          resolve({ code: -1, stdout: ffmpegStdout, stderr: err.message }),
+        );
+      },
+    );
+
+    activeProcesses.delete(jobId);
+
+    if (ffmpegResult.code === 0 && existsSync(convertedFile)) {
       unlinkSync(actualFile);
       finalFile = convertedFile;
     }
   }
 
+  await updateJobStatus(jobId, 'uploading');
   const fileSize = statSync(finalFile).size;
-  const storageKey = `users/${userId}/downloads/${jobId}/${basename(finalFile)}`;
+  const storageKey = `users/${userId}/downloads/${jobId}/${sanitizeFileName(basename(finalFile))}`;
   const fileStream = createReadStream(finalFile);
+  const mimeType = getMimeType(postProcessOptions?.convert || format);
   await s3.send(
     new PutObjectCommand({
       Bucket: BUCKET,
       Key: storageKey,
       Body: fileStream,
       ContentLength: fileSize,
-      ContentType: 'video/mp4',
+      ContentType: mimeType,
     }),
   );
   await db.insert(downloadFiles).values({
     jobId,
     userId,
     storageKey,
-    fileName: basename(finalFile),
+    fileName: sanitizeFileName(basename(finalFile)),
     fileSize,
-    mimeType: 'video/mp4',
+    mimeType,
     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   });
   unlinkSync(finalFile);
@@ -304,11 +411,12 @@ async function processMetadataJob(jobData: MetadataJobData) {
         title: metadata.title as string,
         progress: 100,
         completedAt: new Date(),
+        metadata,
       })
       .where(eq(downloadJobs.id, jobId));
-    await redis.publish(
+    await redisCommand.publish(
       `job:${jobId}:progress`,
-      JSON.stringify({ status: 'completed', title: metadata.title, progress: 100 }),
+      JSON.stringify({ status: 'completed', title: metadata.title, progress: 100, metadata }),
     );
   } catch (error) {
     await db
@@ -318,7 +426,7 @@ async function processMetadataJob(jobData: MetadataJobData) {
         errorMessage: error instanceof Error ? error.message : 'Metadata extraction failed',
       })
       .where(eq(downloadJobs.id, jobId));
-    await redis.publish(
+    await redisCommand.publish(
       `job:${jobId}:progress`,
       JSON.stringify({
         status: 'failed',
@@ -329,7 +437,8 @@ async function processMetadataJob(jobData: MetadataJobData) {
 }
 
 async function init() {
-  await redis.connect();
+  await redisCommand.connect();
+  await redisSubscriber.connect();
 
   const metadataWorker = new Worker(
     'downloads',
@@ -338,7 +447,7 @@ async function init() {
         await processMetadataJob(job.data);
       }
     },
-    { connection: redis, concurrency: 5 },
+    { connection: redisCommand, concurrency: 5 },
   );
 
   const downloadWorker = new Worker(
@@ -346,8 +455,6 @@ async function init() {
     async (job: Job) => {
       if (job.name === 'download') {
         const jobId = job.data.jobId;
-        activeProcesses.set(jobId, null as any);
-
         try {
           await downloadVideo(job.data);
         } catch (error) {
@@ -359,7 +466,7 @@ async function init() {
               updatedAt: new Date(),
             })
             .where(eq(downloadJobs.id, jobId));
-          await redis.publish(
+          await redisCommand.publish(
             `job:${jobId}:progress`,
             JSON.stringify({
               status: 'failed',
@@ -372,17 +479,19 @@ async function init() {
         }
       }
     },
-    { connection: redis, concurrency: 2 },
+    { connection: redisCommand, concurrency: 2 },
   );
 
-  redis.subscribe('job:cancel:commands');
-  redis.on('message', async (channel, message) => {
+  await redisSubscriber.subscribe('job:cancel:commands');
+  redisSubscriber.on('message', async (channel, message) => {
     if (channel === 'job:cancel:commands') {
       const { jobId } = JSON.parse(message);
-      const proc = activeProcesses.get(jobId);
-      if (proc && !proc.killed) {
-        proc.kill('SIGTERM');
+      const procs = activeProcesses.get(jobId);
+      if (procs) {
+        if (procs.ytDlp && !procs.ytDlp.killed) procs.ytDlp.kill('SIGTERM');
+        if (procs.ffmpeg && !procs.ffmpeg.killed) procs.ffmpeg.kill('SIGTERM');
         await updateJobStatus(jobId, 'cancelled');
+        activeProcesses.delete(jobId);
       }
     }
   });
@@ -396,12 +505,14 @@ async function init() {
 
   process.on('SIGTERM', async () => {
     console.log('Shutting down workers...');
-    for (const [_jobId, proc] of activeProcesses) {
-      if (proc && !proc.killed) proc.kill('SIGTERM');
+    for (const [_jobId, procs] of activeProcesses) {
+      if (procs.ytDlp && !procs.ytDlp.killed) procs.ytDlp.kill('SIGTERM');
+      if (procs.ffmpeg && !procs.ffmpeg.killed) procs.ffmpeg.kill('SIGTERM');
     }
     await metadataWorker.close();
     await downloadWorker.close();
-    await redis.quit();
+    await redisCommand.quit();
+    await redisSubscriber.quit();
     process.exit(0);
   });
 }

@@ -1,4 +1,23 @@
-FROM node:20-slim AS builder
+FROM node:20-slim AS frontend-builder
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY vite.config.ts ./
+COPY tsconfig*.json ./
+COPY index.html ./
+COPY src/ ./src/
+COPY public/ ./public/
+COPY postcss.config.js ./
+COPY tailwind.config.js ./
+COPY components.json ./
+COPY biome.json ./
+
+RUN npm ci
+
+RUN npm run build:web
+
+FROM node:20-slim AS server-builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
@@ -40,10 +59,12 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=10000
+ENV VITE_WEB_MODE=true
 
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
+COPY --from=server-builder /app/dist ./dist
+COPY --from=server-builder /app/node_modules ./node_modules
+COPY --from=server-builder /app/package.json ./
+COPY --from=frontend-builder /app/dist ./dist/public
 
 EXPOSE 10000
 

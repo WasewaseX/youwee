@@ -1,5 +1,5 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react';
-import { getBackend, type User } from '@/lib/backend';
+import type { User } from '@/lib/backend';
 
 interface AuthContextType {
   user: User | null;
@@ -12,21 +12,25 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+const isWebMode = import.meta.env.VITE_WEB_MODE === 'true';
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refreshUser = useCallback(async () => {
+    if (!isWebMode) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      const backend = getBackend();
-      if (backend === getBackend()) {
-        const res = await fetch('/api/auth/me', { credentials: 'include' });
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-        } else {
-          setUser(null);
-        }
+      const res = await fetch('/api/auth/me', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user);
+      } else {
+        setUser(null);
       }
     } catch {
       setUser(null);
@@ -40,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshUser]);
 
   const login = async (email: string, password: string) => {
+    if (!isWebMode) throw new Error('Login not available in desktop mode');
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -57,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (email: string, password: string, name?: string) => {
+    if (!isWebMode) throw new Error('Registration not available in desktop mode');
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -74,6 +80,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    if (!isWebMode) {
+      setUser(null);
+      return;
+    }
     const res = await fetch('/api/auth/logout', {
       method: 'POST',
       credentials: 'include',
@@ -83,6 +93,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
     }
   };
+
+  if (!isWebMode) {
+    return <>{children}</>;
+  }
 
   return (
     <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>

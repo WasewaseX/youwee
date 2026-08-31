@@ -10,7 +10,6 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-
 export const users = pgTable(
   'users',
   {
@@ -28,7 +27,6 @@ export const users = pgTable(
     emailIdx: uniqueIndex('users_email_idx').on(table.email),
   }),
 );
-
 export const sessions = pgTable(
   'sessions',
   {
@@ -48,7 +46,6 @@ export const sessions = pgTable(
     expiresIdx: index('sessions_expires_at_idx').on(table.expiresAt),
   }),
 );
-
 export const downloadJobs = pgTable(
   'download_jobs',
   {
@@ -83,7 +80,6 @@ export const downloadJobs = pgTable(
     createdIdx: index('download_jobs_created_at_idx').on(table.createdAt),
   }),
 );
-
 export const downloadFiles = pgTable(
   'download_files',
   {
@@ -106,7 +102,6 @@ export const downloadFiles = pgTable(
     userIdx: index('download_files_user_id_idx').on(table.userId),
   }),
 );
-
 export const userSettings = pgTable(
   'user_settings',
   {
@@ -129,14 +124,4 @@ export const userSettings = pgTable(
   },
   (_table) => ({}),
 );
-
-export type User = typeof users.$inferSelect;
-export type NewUser = typeof users.$inferInsert;
-export type Session = typeof sessions.$inferSelect;
-export type NewSession = typeof sessions.$inferInsert;
-export type DownloadJob = typeof downloadJobs.$inferSelect;
-export type NewDownloadJob = typeof downloadJobs.$inferInsert;
-export type DownloadFile = typeof downloadFiles.$inferSelect;
-export type NewDownloadFile = typeof downloadFiles.$inferInsert;
-export type UserSettings = typeof userSettings.$inferSelect;
-export type NewUserSettings = typeof userSettings.$inferInsert;
+//# sourceMappingURL=index.js.map

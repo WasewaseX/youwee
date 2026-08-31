@@ -30,6 +30,10 @@ const s3 = new S3Client({
 
 const BUCKET = process.env.STORAGE_BUCKET || 'youwee-files';
 
+function sanitizeFileName(name: string): string {
+  return name.replace(/[^a-zA-Z0-9._-]/g, '_');
+}
+
 files.get('/:fileId', async (c) => {
   const session = c.get('session');
   if (!session) {
@@ -46,10 +50,12 @@ files.get('/:fileId', async (c) => {
     return c.json({ error: 'File not found' }, 404);
   }
 
+  const safeFileName = sanitizeFileName(file.fileName);
+
   const command = new GetObjectCommand({
     Bucket: BUCKET,
     Key: file.storageKey,
-    ResponseContentDisposition: `attachment; filename="${file.fileName}"`,
+    ResponseContentDisposition: `attachment; filename="${safeFileName}"`,
   });
 
   const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });

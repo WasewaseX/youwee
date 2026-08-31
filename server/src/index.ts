@@ -1,3 +1,5 @@
+import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { type SessionPayload, verifySessionCookie } from './auth/index.js';
@@ -44,4 +46,24 @@ app.route('/api/metadata', metadata);
 app.route('/api/downloads', downloads);
 app.route('/api/files', files);
 
+const isWeb = process.env.VITE_WEB_MODE === 'true';
+
+if (isWeb) {
+  app.use('/*', serveStatic({ root: './dist' }));
+  app.get('/*', serveStatic({ path: './dist/index.html' }));
+}
+
 export default app;
+
+export function startServer() {
+  const port = parseInt(process.env.PORT || '10000', 10);
+  const host = process.env.HOST || '0.0.0.0';
+
+  serve({ fetch: app.fetch, port, hostname: host });
+
+  console.log(`Server running on http://${host}:${port}`);
+}
+
+if (import.meta.main) {
+  startServer();
+}

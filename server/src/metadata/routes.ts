@@ -90,6 +90,7 @@ metadata.get('/:jobId', async (c) => {
     errorMessage: job.errorMessage,
     createdAt: job.createdAt,
     completedAt: job.completedAt,
+    metadata: job.metadata,
   });
 });
 

@@ -51,6 +51,8 @@ import {
 } from '@/pages';
 import { LoginPage } from '@/pages/LoginPage';
 
+const isWebMode = import.meta.env.VITE_WEB_MODE === 'true';
+
 function AppContent() {
   const { i18n } = useTranslation('settings');
   const { user, loading: authLoading } = useAuth();
@@ -169,7 +171,7 @@ function AppContent() {
     }
   }, []);
 
-  if (authLoading || !user) {
+  if (isWebMode && (authLoading || !user)) {
     return <LoginPage />;
   }
 

@@ -5,16 +5,32 @@ const Redis = RedisModule.default || RedisModule;
 
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 
-export const redis = new Redis(redisUrl, {
+export const redisCommand = new Redis(redisUrl, {
   maxRetriesPerRequest: 3,
   retryStrategy: (times: number) => Math.min(times * 50, 2000),
   lazyConnect: true,
 });
 
-await redis.connect();
+export const redisSubscriber = new Redis(redisUrl, {
+  maxRetriesPerRequest: 3,
+  retryStrategy: (times: number) => Math.min(times * 50, 2000),
+  lazyConnect: true,
+});
+
+export const redisBullMQ = new Redis(redisUrl, {
+  maxRetriesPerRequest: 3,
+  retryStrategy: (times: number) => Math.min(times * 50, 2000),
+  lazyConnect: true,
+});
+
+export const redis = redisCommand;
+
+await redisCommand.connect();
+await redisSubscriber.connect();
+await redisBullMQ.connect();
 
 export const downloadQueue = new Queue('downloads', {
-  connection: redis,
+  connection: redisBullMQ,
   defaultJobOptions: {
     attempts: 3,
     backoff: {
@@ -26,7 +42,7 @@ export const downloadQueue = new Queue('downloads', {
   },
 });
 
-export const queueEvents = new QueueEvents('downloads', { connection: redis });
+export const queueEvents = new QueueEvents('downloads', { connection: redisBullMQ });
 
 export type DownloadJobData = {
   jobId: string;
@@ -46,5 +62,7 @@ export type MetadataJobData = {
 
 export async function closeQueue() {
   await downloadQueue.close();
-  await redis.quit();
+  await redisCommand.quit();
+  await redisSubscriber.quit();
+  await redisBullMQ.quit();
 }

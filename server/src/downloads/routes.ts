@@ -19,12 +19,31 @@ type Env = {
 
 const downloads = new Hono<Env>();
 
+const ALLOWED_FORMATS = ['mp4', 'webm', 'mkv', 'mp3', 'm4a', 'opus'] as const;
+const ALLOWED_QUALITIES = [
+  '144p',
+  '240p',
+  '360p',
+  '480p',
+  '720p',
+  '1080p',
+  '1440p',
+  '2160p',
+  '4320p',
+  'best',
+  'worst',
+] as const;
+
 const createDownloadSchema = z.object({
   url: z.string().url(),
-  format: z.string().optional(),
-  quality: z.string().optional(),
+  format: z.enum(ALLOWED_FORMATS).optional(),
+  quality: z.enum(ALLOWED_QUALITIES).optional(),
   subtitleOptions: z.record(z.unknown()).optional(),
-  postProcessOptions: z.record(z.unknown()).optional(),
+  postProcessOptions: z
+    .object({
+      convert: z.enum(ALLOWED_FORMATS).optional(),
+    })
+    .optional(),
   parentJobId: z.string().uuid().optional(),
 });
 
@@ -117,6 +136,7 @@ downloads.get('/', async (c) => {
       createdAt: job.createdAt,
       startedAt: job.startedAt,
       completedAt: job.completedAt,
+      metadata: job.metadata,
       files: job.files.map((f) => ({
         id: f.id,
         fileName: f.fileName,
@@ -165,6 +185,7 @@ downloads.get('/:jobId', async (c) => {
     createdAt: job.createdAt,
     startedAt: job.startedAt,
     completedAt: job.completedAt,
+    metadata: job.metadata,
     files: job.files.map((f) => ({
       id: f.id,
       fileName: f.fileName,
@@ -190,7 +211,7 @@ downloads.post('/:jobId/cancel', async (c) => {
     return c.json({ error: 'Job not found' }, 404);
   }
 
-  if (!['queued', 'downloading', 'processing'].includes(job.status)) {
+  if (!['queued', 'downloading', 'processing', 'uploading'].includes(job.status)) {
     return c.json({ error: 'Job cannot be cancelled' }, 400);
   }
 
@@ -201,7 +222,7 @@ downloads.post('/:jobId/cancel', async (c) => {
 
   await downloadQueue.remove(jobId);
 
-  await redis.publish(`job:${jobId}:cancel`, 'cancel');
+  await redis.publish('job:cancel:commands', JSON.stringify({ jobId }));
 
   return c.json({ success: true });
 });
@@ -224,42 +245,50 @@ downloads.get('/:jobId/events', async (c) => {
 
   const encoder = new TextEncoder();
   let subscribed = false;
+  let subscriberClosed = false;
 
   const stream = new ReadableStream({
     async start(controller) {
       const send = (data: unknown) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        if (!subscriberClosed) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        }
       };
 
-      send({ status: job.status, progress: job.progress });
+      send({ status: job.status, progress: job.progress, metadata: job.metadata });
 
       const subscriber = redis.duplicate();
       await subscriber.subscribe(`job:${jobId}:progress`);
       subscribed = true;
 
-      subscriber.on('message', (channel, message) => {
+      const onMessage = (channel: string, message: string) => {
         if (channel === `job:${jobId}:progress`) {
           try {
             const data = JSON.parse(message);
             send(data);
             if (['completed', 'failed', 'cancelled'].includes(data.status)) {
-              subscriber.unsubscribe(`job:${jobId}:progress`);
-              subscriber.quit();
-              controller.close();
+              cleanup();
             }
           } catch {
             // ignore parse errors
           }
         }
-      });
+      };
 
-      c.req.raw.signal.addEventListener('abort', async () => {
-        if (subscribed) {
+      subscriber.on('message', onMessage);
+
+      const cleanup = async () => {
+        if (subscribed && !subscriberClosed) {
+          subscriberClosed = true;
+          subscriber.off('message', onMessage);
           await subscriber.unsubscribe(`job:${jobId}:progress`);
           await subscriber.quit();
+          subscribed = false;
+          controller.close();
         }
-        controller.close();
-      });
+      };
+
+      c.req.raw.signal.addEventListener('abort', cleanup);
     },
   });
 
