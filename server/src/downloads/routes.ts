@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { db } from '../db/index.js';
 import { type downloadFiles, downloadJobs } from '../db/schema.js';
 import { type DownloadJobData, downloadQueue, redis } from '../queue/index.js';
+import { validateUrl } from '../utils/url-validation.js';
 
 interface SessionPayload {
   userId: string;
@@ -56,6 +57,11 @@ downloads.post('/', async (c) => {
   try {
     const body = await c.req.json();
     const data = createDownloadSchema.parse(body);
+
+    const validation = await validateUrl(data.url);
+    if (!validation.valid) {
+      return c.json({ error: validation.error }, 400);
+    }
 
     const jobId = crypto.randomUUID();
 

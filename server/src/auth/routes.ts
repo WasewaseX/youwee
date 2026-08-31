@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { createRateLimiter } from '../utils/rate-limiter.js';
 import { getUserFromToken, loginUser, logoutUser, registerUser } from './index.js';
 
 const auth = new Hono();
@@ -15,17 +16,29 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-auth.post('/register', async (c) => {
+const loginLimiter = createRateLimiter(5, 60 * 1000);
+const registerLimiter = createRateLimiter(3, 60 * 1000);
+
+function setSessionCookie(c: any, token: string) {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const cookieOptions = `youwee_session=${token}; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=Lax; Path=/; Max-Age=${30 * 24 * 60 * 60}`;
+  c.header('Set-Cookie', cookieOptions);
+}
+
+function clearSessionCookie(c: any) {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const cookieOptions = `youwee_session=; HttpOnly; ${isProduction ? 'Secure; ' : ''}SameSite=Lax; Path=/; Max-Age=0`;
+  c.header('Set-Cookie', cookieOptions);
+}
+
+auth.post('/register', registerLimiter, async (c) => {
   try {
     const body = await c.req.json();
     const data = registerSchema.parse(body);
 
     const { user, token } = await registerUser(data.email, data.password, data.name);
 
-    c.header(
-      'Set-Cookie',
-      `youwee_session=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${30 * 24 * 60 * 60}`,
-    );
+    setSessionCookie(c, token);
 
     return c.json(
       {
@@ -46,17 +59,14 @@ auth.post('/register', async (c) => {
   }
 });
 
-auth.post('/login', async (c) => {
+auth.post('/login', loginLimiter, async (c) => {
   try {
     const body = await c.req.json();
     const data = loginSchema.parse(body);
 
     const { user, token } = await loginUser(data.email, data.password);
 
-    c.header(
-      'Set-Cookie',
-      `youwee_session=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${30 * 24 * 60 * 60}`,
-    );
+    setSessionCookie(c, token);
 
     return c.json({
       user: {
@@ -80,7 +90,7 @@ auth.post('/logout', async (c) => {
     await logoutUser(token);
   }
 
-  c.header('Set-Cookie', 'youwee_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0');
+  clearSessionCookie(c);
 
   return c.json({ success: true });
 });
@@ -95,7 +105,7 @@ auth.get('/me', async (c) => {
   const user = await getUserFromToken(token);
 
   if (!user) {
-    c.header('Set-Cookie', 'youwee_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0');
+    clearSessionCookie(c);
     return c.json({ user: null }, 401);
   }
 

@@ -1,8 +1,8 @@
-FROM node:20-slim AS frontend-builder
+FROM oven/bun:1.1-slim AS frontend-builder
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package.json bun.lock ./
 COPY vite.config.ts ./
 COPY tsconfig*.json ./
 COPY index.html ./
@@ -13,11 +13,11 @@ COPY tailwind.config.js ./
 COPY components.json ./
 COPY biome.json ./
 
-RUN npm ci
+RUN bun install --frozen-lockfile
 
-RUN npm run build:web
+RUN bun run build:web
 
-FROM node:20-slim AS server-builder
+FROM oven/bun:1.1-slim AS server-builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
@@ -34,13 +34,13 @@ ENV PATH="/root/.deno/bin:${PATH}"
 
 WORKDIR /app
 
-COPY server/package*.json ./
-RUN npm ci
+COPY server/package.json server/bun.lock ./
+RUN bun install --frozen-lockfile
 
 COPY server/ ./
-RUN npm run build
+RUN bun run build
 
-FROM node:20-slim AS runner
+FROM oven/bun:1.1-slim AS runner
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
@@ -68,4 +68,4 @@ COPY --from=frontend-builder /app/dist ./dist/public
 
 EXPOSE 10000
 
-CMD ["node", "dist/index.js"]
+CMD ["bun", "dist/index.js"]

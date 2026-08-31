@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { db } from '../db/index.js';
 import { downloadJobs } from '../db/schema.js';
 import { downloadQueue, type MetadataJobData } from '../queue/index.js';
+import { validateUrl } from '../utils/url-validation.js';
 
 interface SessionPayload {
   userId: string;
@@ -32,6 +33,11 @@ metadata.post('/', async (c) => {
   try {
     const body = await c.req.json();
     const data = metadataSchema.parse(body);
+
+    const validation = await validateUrl(data.url);
+    if (!validation.valid) {
+      return c.json({ error: validation.error }, 400);
+    }
 
     const jobId = crypto.randomUUID();
 
