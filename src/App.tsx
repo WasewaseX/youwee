@@ -15,6 +15,7 @@ import { ToastProvider } from '@/components/ui/toast';
 import { AIProvider } from '@/contexts/AIContext';
 import { ChannelsProvider } from '@/contexts/ChannelsContext';
 import { DataExportProvider } from '@/contexts/DataExportContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { DependenciesProvider, useDependencies } from '@/contexts/DependenciesContext';
 import { DownloadProvider } from '@/contexts/DownloadContext';
 import { useDownload } from '@/contexts/download-context';
@@ -48,9 +49,11 @@ import {
   SummaryPage,
   UniversalPage,
 } from '@/pages';
+import { LoginPage } from '@/pages/LoginPage';
 
 function AppContent() {
   const { i18n } = useTranslation('settings');
+  const { user, loading: authLoading } = useAuth();
   const [currentPage, setCurrentPage] = useState<Page>('youtube');
   const [settingsInitialSection, setSettingsInitialSection] =
     useState<SettingsSectionId>('general');
@@ -166,6 +169,10 @@ function AppContent() {
     }
   }, []);
 
+  if (authLoading || !user) {
+    return <LoginPage />;
+  }
+
   return (
     <>
       <MainLayout currentPage={currentPage} onPageChange={setCurrentPage}>
@@ -240,39 +247,41 @@ function UpdaterWrapper({ children }: { children: React.ReactNode }) {
 export function App() {
   return (
     <ThemeProvider>
-      <DependenciesProvider>
-        <DownloadProvider>
-          <UniversalProvider>
-            <GalleryDlProvider>
-              <ChannelsProvider>
-                <LogProvider>
-                  <HistoryProvider>
-                    <PlayerProvider>
-                      <AIProvider>
-                        <SummarySessionProvider>
-                          <ProcessingProvider>
-                            <SubtitleProvider>
-                              <MetadataProvider>
-                                <DataExportProvider>
-                                  <ToastProvider>
-                                    <UpdaterWrapper>
-                                      <AppContent />
-                                    </UpdaterWrapper>
-                                  </ToastProvider>
-                                </DataExportProvider>
-                              </MetadataProvider>
-                            </SubtitleProvider>
-                          </ProcessingProvider>
-                        </SummarySessionProvider>
-                      </AIProvider>
-                    </PlayerProvider>
-                  </HistoryProvider>
-                </LogProvider>
-              </ChannelsProvider>
-            </GalleryDlProvider>
-          </UniversalProvider>
-        </DownloadProvider>
-      </DependenciesProvider>
+      <AuthProvider>
+        <DependenciesProvider>
+          <DownloadProvider>
+            <UniversalProvider>
+              <GalleryDlProvider>
+                <ChannelsProvider>
+                  <LogProvider>
+                    <HistoryProvider>
+                      <PlayerProvider>
+                        <AIProvider>
+                          <SummarySessionProvider>
+                            <ProcessingProvider>
+                              <SubtitleProvider>
+                                <MetadataProvider>
+                                  <DataExportProvider>
+                                    <ToastProvider>
+                                      <UpdaterWrapper>
+                                        <AppContent />
+                                      </UpdaterWrapper>
+                                    </ToastProvider>
+                                  </DataExportProvider>
+                                </MetadataProvider>
+                              </SubtitleProvider>
+                            </ProcessingProvider>
+                          </SummarySessionProvider>
+                        </AIProvider>
+                      </PlayerProvider>
+                    </HistoryProvider>
+                  </LogProvider>
+                </ChannelsProvider>
+              </GalleryDlProvider>
+            </UniversalProvider>
+          </DownloadProvider>
+        </DependenciesProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

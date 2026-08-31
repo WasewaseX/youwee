@@ -1,0 +1,40 @@
+{
+  "name": "youwee-server",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "test": "vitest run",
+    "lint": "biome check ."
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.600.0",
+    "@aws-sdk/s3-request-presigner": "^3.600.0",
+    "@types/redis": "^4.0.11",
+    "bcryptjs": "^2.4.3",
+    "bullmq": "^5.15.0",
+    "dotenv": "^16.4.0",
+    "drizzle-orm": "^0.35.0",
+    "hono": "^4.6.0",
+    "ioredis": "^5.4.0",
+    "jose": "^5.9.0",
+    "nanoid": "^5.0.0",
+    "postgres": "^3.4.0",
+    "redis": "^6.2.1",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/bcryptjs": "^2.4.0",
+    "typescript": "^5.6.0",
+    "tsx": "^4.19.0",
+    "drizzle-kit": "^0.26.0",
+    "vitest": "^2.1.0",
+    "@biomejs/biome": "^1.9.0"
+  }
+}

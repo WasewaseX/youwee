@@ -46,18 +46,33 @@ function manualChunks(id: string): string | undefined {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      '@': path.resolve(import.meta.dirname, './src'),
-    },
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks,
+export default defineConfig(() => {
+  const isWeb = process.env.VITE_WEB_MODE === 'true';
+
+  return {
+    plugins: [react()],
+    resolve: {
+      alias: {
+        '@': path.resolve(import.meta.dirname, './src'),
       },
     },
-  },
+    define: {
+      'import.meta.env.VITE_WEB_MODE': JSON.stringify(isWeb),
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks,
+        },
+      },
+    },
+    server: {
+      proxy: isWeb ? {
+        '/api': {
+          target: 'http://localhost:10000',
+          changeOrigin: true,
+        },
+      } : undefined,
+    },
+  };
 });

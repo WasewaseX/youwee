@@ -105,5 +105,24 @@
     "WHISPER_NO_API_KEY": "Whisper API key not configured.",
     "WHISPER_UNSUPPORTED_FORMAT": "Unsupported audio format for Whisper.",
     "YT_SKIPPED_FILTER": "Skipped by yt-dlp match filter."
+  },
+  "auth": {
+    "login": "Sign In",
+    "register": "Create Account",
+    "login_subtitle": "Sign in to your Youwee account",
+    "register_subtitle": "Create your Youwee account",
+    "name": "Name",
+    "name_placeholder": "Enter your name",
+    "email": "Email",
+    "email_placeholder": "Enter your email",
+    "password": "Password",
+    "password_placeholder": "Enter your password",
+    "show_password": "Show password",
+    "hide_password": "Hide password",
+    "submitting": "Please wait...",
+    "no_account": "Don't have an account?",
+    "has_account": "Already have an account?",
+    "register_link": "Sign up",
+    "login_link": "Sign in"
   }
 }
