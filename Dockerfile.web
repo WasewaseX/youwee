@@ -1,4 +1,4 @@
-FROM oven/bun:1.1-slim AS frontend-builder
+FROM oven/bun:1-slim AS frontend-builder
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ RUN bun install --frozen-lockfile
 
 RUN bun run build:web
 
-FROM oven/bun:1.1-slim AS server-builder
+FROM oven/bun:1-slim AS server-builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
@@ -40,7 +40,7 @@ RUN bun install --frozen-lockfile
 COPY server/ ./
 RUN bun run build
 
-FROM oven/bun:1.1-slim AS runner
+FROM oven/bun:1-slim AS runner
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
