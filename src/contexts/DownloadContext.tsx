@@ -86,6 +86,7 @@ import type {
   YoutubeSearchQueueResult,
   YoutubeSearchVideo,
 } from '@/lib/types';
+import { resolveExternalFormat } from '@/lib/types';
 import { extractYouTubeVideoId } from '@/lib/youtube-url';
 import { sanitizeYtdlpAdvancedOptions } from '@/lib/ytdlp-advanced-options';
 import { DownloadContext } from './download-context';
@@ -140,6 +141,13 @@ const ERROR_CLASS_PATTERNS: Array<[RegExp, DownloadErrorClass]> = [
   [
     /permission denied|no such file|failed to (read|write|open)|ffmpeg not found|ffprobe not found|aria2c not found|gallery-dl not found|no space|disk/i,
     'disk',
+  ],
+  [
+    // Unsupported-site style failures: yt-dlp has no extractor for this page
+    // (e.g. manga/image sites belong in the Gallery tab) or the vendored
+    // extractor set is stale. Keep this ABOVE the generic 'config' pattern.
+    /unsupported url|no video formats|unable to extract|no media found|this (site|url) is not supported|extractor not found|nsig extraction failed/i,
+    'unsupported',
   ],
   [/invalid|unsupported|managed externally/i, 'config'],
 ];
@@ -1035,7 +1043,7 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
         postDownloadWorkflowSteps: loadPostDownloadWorkflowSteps(),
         overrides: {
           quality: mediaType === 'audio' ? 'audio' : videoQuality,
-          format: mediaType === 'audio' ? 'mp3' : 'mp4',
+          format: resolveExternalFormat(currentSettings.format, mediaType),
           outputPath,
           downloadPlaylist: options?.downloadPlaylist ?? false,
           playlistLimit: options?.playlistLimit ?? null,

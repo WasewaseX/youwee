@@ -59,6 +59,7 @@ import type {
   VideoInfoResponse,
   YtdlpAdvancedOption,
 } from '@/lib/types';
+import { resolveExternalFormat } from '@/lib/types';
 import {
   buildItemUniversalSettingsSnapshot,
   createDefaultUniversalSettings,
@@ -691,7 +692,7 @@ export function UniversalProvider({ children }: { children: ReactNode }) {
         postDownloadWorkflowSteps: loadPostDownloadWorkflowSteps(),
         overrides: {
           quality: mediaType === 'audio' ? 'audio' : videoQuality,
-          format: mediaType === 'audio' ? 'mp3' : 'mp4',
+          format: resolveExternalFormat(currentSettings.format, mediaType),
           outputPath,
           audioBitrate: mediaType === 'audio' ? audioBitrate : currentSettings.audioBitrate,
           timeRangeStart: options?.timeRangeStart,

@@ -170,6 +170,7 @@ export type DownloadErrorClass =
   | 'unavailable'
   | 'disk'
   | 'config'
+  | 'unsupported'
   | 'unknown';
 
 export interface DownloadItem {
@@ -322,6 +323,21 @@ export interface ExternalEnqueueOptions {
   timeRangeEnd?: string;
   liveFromStart?: boolean;
   skipLive?: boolean;
+}
+
+const AUDIO_FORMATS: Format[] = ['mp3', 'm4a', 'opus'];
+const VIDEO_FORMATS: Format[] = ['mp4', 'mkv', 'webm'];
+
+/**
+ * External ingestion (browser extension, deep links, CLI) used to hardcode
+ * mp4/mp3 and silently ignore the user's global format choice
+ * (upstream issue #117). Keep the user's format when it is valid for the
+ * media type, otherwise fall back to the previous safe default.
+ */
+export function resolveExternalFormat(format: Format, mediaType: 'video' | 'audio'): Format {
+  const pool = mediaType === 'audio' ? AUDIO_FORMATS : VIDEO_FORMATS;
+  if (pool.includes(format)) return format;
+  return mediaType === 'audio' ? 'mp3' : 'mp4';
 }
 
 export interface DownloadSettings {
