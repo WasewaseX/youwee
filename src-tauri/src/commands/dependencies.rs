@@ -763,6 +763,9 @@ pub async fn download_ffmpeg(app: AppHandle) -> Result<String, String> {
     #[cfg(not(windows))]
     let ffmpeg_binary = "ffmpeg";
 
+    #[cfg(unix)]
+    let ffmpeg_path = bin_dir.join(ffmpeg_binary);
+    #[cfg(not(unix))]
     let _ffmpeg_path = bin_dir.join(ffmpeg_binary);
 
     // Preserve the last working version before replacing it
@@ -796,7 +799,7 @@ pub async fn download_ffmpeg(app: AppHandle) -> Result<String, String> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let mut perms = tokio::fs::metadata(&_ffmpeg_path)
+        let mut perms = tokio::fs::metadata(&ffmpeg_path)
             .await
             .map_err(|e| format!("Failed to get file metadata: {}", e))?
             .permissions();
@@ -967,6 +970,9 @@ pub async fn download_deno(app: AppHandle) -> Result<String, String> {
     #[cfg(not(windows))]
     let deno_binary = "deno";
 
+    #[cfg(unix)]
+    let deno_path = bin_dir.join(deno_binary);
+    #[cfg(not(unix))]
     let _deno_path = bin_dir.join(deno_binary);
 
     // Preserve the last working version before replacing it
@@ -984,7 +990,7 @@ pub async fn download_deno(app: AppHandle) -> Result<String, String> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let mut perms = tokio::fs::metadata(&_deno_path)
+        let mut perms = tokio::fs::metadata(&deno_path)
             .await
             .map_err(|e| format!("Failed to get file metadata: {}", e))?
             .permissions();
