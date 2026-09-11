@@ -353,9 +353,9 @@ export function DependenciesSection({ highlightId }: DependenciesSectionProps) {
   }, [error, channelError, ffmpegError, denoError, galleryDlError, t, toast]);
 
   // Startup compatibility test when the Engines screen opens
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally runs once when the screen opens
   useEffect(() => {
     void runCompatTest();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Listen for gallery-dl download progress events
