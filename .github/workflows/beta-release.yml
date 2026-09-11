@@ -257,6 +257,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+        with:
+          fetch-depth: 0
+          fetch-tags: true
       - name: Download all artifacts
         uses: actions/download-artifact@v7
         with:
@@ -291,22 +294,25 @@ jobs:
       - name: Create beta release body
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          cat > RELEASE_BODY.md << EOF
+          # Commits since the previous tag (or the last 40 when this is the first tag)
+          PREV_TAG="$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)"
+          if [ -n "$PREV_TAG" ]; then
+            CHANGELOG="$(git log --no-decorate --format='- %s (%h)' "${PREV_TAG}..HEAD" | head -40)"
+          else
+            CHANGELOG="$(git log --no-decorate --format='- %s (%h)' -40 | head -40)"
+          fi
+
+          cat > RELEASE_BODY.md << HEADER_EOF
           # Youwee ${VERSION} — BETA (untested)
 
-          > **This is an automated beta build from the [\`round4-fixes\`](https://github.com/WasewaseX/youwee/tree/round4-fixes) branch.**
+          > **This is an automated beta build from the \`round4-fixes\` branch.**
           > It has **not** been tested end-to-end — expect rough edges and please report anything broken.
 
           ## What's in this beta
-          - fix: per-download gallery cancellation with id-keyed PID registry
-          - fix: batch processing now works (\`execute_ffmpeg_batch\` command was never registered)
-          - fix: Subtitle Auto mode honors selected languages (upstream #116)
-          - fix: extension/CLI downloads respect your global format setting, e.g. MKV (upstream #117)
-          - fix: Telegram polling recovers from dead connections instead of hanging (upstream #118)
-          - fix: Subtitle dialog download command (\`download_subtitle_content\`) is now implemented and registered
-          - feat: "Unsupported site" error classification with guidance (update engines / use Gallery tab)
-          - feat: Tauri command consistency check in CI + dev startup smoke test
-          - feat: automated unsigned beta builds for all platforms (this release)
+          HEADER_EOF
+          ${CHANGELOG:+echo "$CHANGELOG" >> RELEASE_BODY.md}
+
+          cat >> RELEASE_BODY.md << FOOTER_EOF
 
           ## Downloads
 
@@ -344,9 +350,10 @@ jobs:
           - **macOS**: 10.15 (Catalina) or later
           - **Linux**: Ubuntu 20.04 or equivalent
           - Engines (yt-dlp / FFmpeg / gallery-dl / Deno) auto-download in **Settings → Engines**
-          EOF
+          FOOTER_EOF
           echo "Generated RELEASE_BODY.md:"
           cat RELEASE_BODY.md
+
 
       - name: Create beta release
         uses: softprops/action-gh-release@v2
