@@ -334,6 +334,7 @@ pub fn run() {
             commands::get_playlist_entries,
             commands::search_youtube_videos,
             commands::get_available_subtitles,
+            commands::download_subtitle_content,
             commands::get_video_transcript,
             // yt-dlp commands
             commands::get_ytdlp_version,
@@ -429,6 +430,7 @@ pub fn run() {
             commands::generate_processing_command,
             commands::generate_quick_action_command,
             commands::execute_ffmpeg_command,
+            commands::execute_ffmpeg_batch,
             commands::cancel_ffmpeg,
             commands::get_processing_history,
             commands::save_processing_job,
