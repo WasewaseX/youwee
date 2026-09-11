@@ -419,7 +419,7 @@ export function BackupSection({ highlightId }: { highlightId?: string | null }) 
             </div>
           )}
 
-          {preview && preview.valid && (
+          {preview?.valid && (
             <div className="space-y-4">
               {/* Stats */}
               <div className="flex flex-wrap items-center gap-2">
@@ -554,7 +554,7 @@ export function BackupSection({ highlightId }: { highlightId?: string | null }) 
             </Button>
             <Button
               type="button"
-              disabled={!preview || !preview.valid || importing}
+              disabled={!preview?.valid || importing}
               onClick={handleImport}
               className="gap-1.5"
             >

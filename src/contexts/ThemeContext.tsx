@@ -87,6 +87,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [mode, setMode]);
 
   // Apply theme CSS variables
+  // biome-ignore lint/correctness/useExhaustiveDependencies: theme effect intentionally depends on the current theme snapshot only
   useEffect(() => {
     const root = document.documentElement;
     const themeConfig = getTheme(theme);

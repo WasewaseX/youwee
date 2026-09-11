@@ -119,11 +119,14 @@ function useCoverUrl(coverPath: string | undefined, enabled: boolean) {
         })(),
       );
     }
-    void coverUrlCache.get(coverPath)!.then((resolved) => {
-      if (cancelled) return;
-      if (resolved) setUrl(resolved);
-      else setFailed(true);
-    });
+    const cached = coverUrlCache.get(coverPath);
+    if (cached) {
+      void cached.then((resolved) => {
+        if (cancelled) return;
+        if (resolved) setUrl(resolved);
+        else setFailed(true);
+      });
+    }
     return () => {
       cancelled = true;
     };
@@ -170,11 +173,13 @@ export function GalleryBrowser({ queueItems, onGoToQueue, onAddUrls }: GalleryBr
     }
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: effect intentionally re-runs whenever the refresh callback identity changes
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
   // Auto-refresh shortly after the queue changes (new gallery finished).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional debounce on queue changes
   useEffect(() => {
     const timer = window.setTimeout(() => void refresh(), 900);
     return () => window.clearTimeout(timer);
@@ -542,6 +547,7 @@ function LibraryCard({
           </p>
           <div className="mt-0.5 flex items-center gap-1.5">
             {size && <span className="text-[10px] text-white/70">{size}</span>}
+            {/* biome-ignore lint/a11y/useSemanticElements: nested interactive element inside card layout cannot be a <button> */}
             <span
               role="button"
               tabIndex={0}

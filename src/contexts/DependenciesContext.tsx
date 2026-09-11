@@ -714,7 +714,7 @@ export function DependenciesProvider({ children }: { children: ReactNode }) {
       setRollbackLoading(engine);
       setRollbackSuccess(null);
       try {
-        const version = await invoke<string>('rollback_' + engine);
+        const version = await invoke<string>(`rollback_${engine}`);
         setRollbackSuccess(version);
         setTimeout(() => setRollbackSuccess(null), 5000);
         await runCompatTest();
