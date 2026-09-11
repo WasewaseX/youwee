@@ -1173,8 +1173,18 @@ pub fn build_download_args(req: &DownloadArgsRequest) -> Result<BuiltDownloadArg
         args.push("--write-subs".to_string());
         if req.subtitle_mode == "auto" {
             args.push("--write-auto-subs".to_string());
+            // Honor the user's selected languages in auto mode too; only fall
+            // back to "all" when nothing specific was chosen (upstream #116).
+            let langs = req.subtitle_langs.trim();
+            let user_selected = !langs.is_empty()
+                && !langs.eq_ignore_ascii_case("all")
+                && langs != "*";
             args.push("--sub-langs".to_string());
-            args.push("all".to_string());
+            if user_selected {
+                args.push(langs.to_string());
+            } else {
+                args.push("all".to_string());
+            }
         } else {
             args.push("--sub-langs".to_string());
             args.push(req.subtitle_langs.clone());
