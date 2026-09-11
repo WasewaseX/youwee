@@ -101,6 +101,7 @@ const ERROR_CLASS_BADGE_STYLES: Record<string, string> = {
   unavailable: 'bg-slate-500/10 text-slate-600 dark:text-slate-400',
   disk: 'bg-orange-500/10 text-orange-600 dark:text-orange-400',
   config: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
+  unsupported: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400',
   unknown: 'bg-muted/50 text-muted-foreground',
 };
 
@@ -151,9 +152,13 @@ export function GalleryQueueList({
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (allFilteredSelected) {
-        filtered.forEach((item) => next.delete(item.id));
+        filtered.forEach((item) => {
+          next.delete(item.id);
+        });
       } else {
-        filtered.forEach((item) => next.add(item.id));
+        filtered.forEach((item) => {
+          next.add(item.id);
+        });
       }
       return next;
     });
@@ -161,7 +166,9 @@ export function GalleryQueueList({
 
   const deleteSelected = () => {
     const ids = items.filter((item) => selectedIds.has(item.id)).map((item) => item.id);
-    ids.forEach((id) => onRemove(id));
+    ids.forEach((id) => {
+      onRemove(id);
+    });
     setSelectedIds(new Set());
   };
 

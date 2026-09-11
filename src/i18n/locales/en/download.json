@@ -246,7 +246,8 @@
       "unavailable": "Unavailable",
       "disk": "Disk error",
       "config": "Config error",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "unsupported": "Unsupported site"
     },
     "errorClassAction": {
       "transient": "Retry later",
@@ -255,7 +256,8 @@
       "unavailable": "Check source",
       "disk": "Free disk space",
       "config": "Fix settings",
-      "unknown": "View logs"
+      "unknown": "View logs",
+      "unsupported": "Update yt-dlp in Settings > Engines, or use the Gallery tab for manga/image sites"
     }
   },
   "actions": {

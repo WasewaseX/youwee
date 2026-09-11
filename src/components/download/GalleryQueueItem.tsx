@@ -29,6 +29,7 @@ const ERROR_CLASS_BADGE_STYLES: Record<string, string> = {
   unavailable: 'bg-slate-500/10 text-slate-600 dark:text-slate-400',
   disk: 'bg-orange-500/10 text-orange-600 dark:text-orange-400',
   config: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
+  unsupported: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400',
   unknown: 'bg-muted/50 text-muted-foreground',
 };
 
