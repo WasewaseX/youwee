@@ -36,6 +36,7 @@ import { useTelegramRemoteCommands } from '@/hooks/useTelegramRemoteCommands';
 import { useTrayDownloadStatus } from '@/hooks/useTrayDownloadStatus';
 import { useTrayEvents } from '@/hooks/useTrayEvents';
 import { useYtdlpAutoUpdateToast } from '@/hooks/useYtdlpAutoUpdateToast';
+import { runDevCommandSmoke } from '@/lib/dev-command-smoke';
 import {
   ChannelsPage,
   DownloadPage,
@@ -99,6 +100,14 @@ function AppContent() {
   useYtdlpAutoUpdateToast({
     onOpenDependencies: openDependenciesSettings,
   });
+
+  useEffect(() => {
+    // Dev-only: probe safe startup commands and warn on any failure
+    // (catches unregistered/signature-drifted Tauri commands early).
+    if (import.meta.env.DEV) {
+      runDevCommandSmoke();
+    }
+  }, []);
 
   useEffect(() => {
     const locale = i18n.resolvedLanguage || i18n.language || 'en';
