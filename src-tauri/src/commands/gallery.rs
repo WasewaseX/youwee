@@ -359,6 +359,13 @@ pub async fn download_gallery(
     cmd.hide_window();
 
     let stop_key = id.unwrap_or_else(|| url.clone());
+    // Forget stale stop requests left over from a previous run with this key
+    // (mirrors download_video clearing CANCEL_ITEM_IDS at start), so only a
+    // stop that lands during THIS run can cancel it.
+    GALLERY_STOP_IDS
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .remove(&stop_key);
     let mut child = cmd.spawn().map_err(|e| {
         BackendError::from_message(format!("Failed to start gallery-dl: {}", e)).to_wire_string()
     })?;
@@ -368,7 +375,27 @@ pub async fn download_gallery(
             .unwrap_or_else(|e| e.into_inner())
             .insert(stop_key.clone(), pid);
     }
-    GALLERY_STOP_IDS.lock().unwrap_or_else(|e| e.into_inner()).remove(&stop_key);
+    // A stop request may have landed in the window between spawn() and the PID
+    // registration above: stop_gallery_download found no PID yet and could only
+    // set the flag. Honor it now — kill the fresh child and re-arm the flag so
+    // the post-wait handling below reports this run as stopped, not failed.
+    let stop_during_spawn = GALLERY_STOP_IDS
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .remove(&stop_key);
+    if stop_during_spawn {
+        if let Some(pid) = child.id() {
+            kill_process_tree_pid(pid);
+        }
+        GALLERY_CHILD_PIDS
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .remove(&stop_key);
+        GALLERY_STOP_IDS
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(stop_key.clone());
+    }
 
     let stdout = child.stdout.take();
     let stderr = child.stderr.take();
