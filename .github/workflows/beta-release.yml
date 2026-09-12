@@ -310,7 +310,12 @@ jobs:
 
           ## What's in this beta
           HEADER_EOF
-          ${CHANGELOG:+echo "$CHANGELOG" >> RELEASE_BODY.md}
+          # NOTE: do not use ${CHANGELOG:+echo ...} here — a redirect inside a
+          # ${var:+word} alternative is not parsed as a redirection, so the
+          # changelog would leak to the job log instead of the file.
+          if [ -n "$CHANGELOG" ]; then
+            printf '%s\n' "$CHANGELOG" >> RELEASE_BODY.md
+          fi
 
           cat >> RELEASE_BODY.md << FOOTER_EOF
 
