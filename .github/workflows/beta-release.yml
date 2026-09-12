@@ -256,10 +256,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
-
         with:
           fetch-depth: 0
           fetch-tags: true
+
       - name: Download all artifacts
         uses: actions/download-artifact@v7
         with:
@@ -303,10 +303,10 @@ jobs:
           fi
 
           cat > RELEASE_BODY.md << HEADER_EOF
-          # Youwee ${VERSION} — BETA (untested)
+          # Youwee ${VERSION} — BETA
 
           > **This is an automated beta build from the \`round4-fixes\` branch.**
-          > It has **not** been tested end-to-end — expect rough edges and please report anything broken.
+          > Found something broken? Please open an issue.
 
           ## What's in this beta
           HEADER_EOF
@@ -358,7 +358,7 @@ jobs:
       - name: Create beta release
         uses: softprops/action-gh-release@v2
         with:
-          name: Youwee ${{ github.ref_name }} (beta — untested)
+          name: Youwee ${{ github.ref_name }} (beta)
           tag_name: ${{ github.ref_name }}
           draft: false
           prerelease: true
