@@ -173,7 +173,6 @@ export function GalleryBrowser({ queueItems, onGoToQueue, onAddUrls }: GalleryBr
     }
   }, []);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: effect intentionally re-runs whenever the refresh callback identity changes
   useEffect(() => {
     void refresh();
   }, [refresh]);
