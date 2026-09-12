@@ -59,8 +59,14 @@ for (const f of rustFiles) {
 const tsFiles = walk(join(repoRoot, 'src'), ['.ts', '.tsx']);
 const called = new Set();
 const calledIn = new Map();
+// Dynamic template-literal calls: invoke<T>(`prefix_${expr}`) — the exact
+// command name is built at runtime, so the static PREFIX is checked against
+// the registered command family instead (e.g. `rollback_${engine}` requires
+// at least one rollback_* command in invoke_handler!).
+const dynamicPrefixes = [];
 for (const f of tsFiles) {
   const src = readFileSync(f, 'utf8');
+  const rel = relative(repoRoot, f);
   for (const m of src.matchAll(
     /\binvoke(?:First|AndIgnore)?(?:<[^>]*>)?\s*\(\s*['"`](\w+)['"`]/g,
   )) {
@@ -69,7 +75,18 @@ for (const f of tsFiles) {
     const tail = src.slice(m.index + m[0].length, m.index + m[0].length + 2);
     if (/^\s*\+/.test(tail)) continue;
     called.add(m[1]);
-    if (!calledIn.has(m[1])) calledIn.set(m[1], relative(repoRoot, f));
+    if (!calledIn.has(m[1])) calledIn.set(m[1], rel);
+  }
+  for (const m of src.matchAll(/\binvoke(?:First|AndIgnore)?(?:<[^>]*>)?\s*\(\s*`([^`\\]*)`/g)) {
+    const tpl = m[1];
+    const interpolation = tpl.indexOf('${');
+    // A template literal without interpolation is a plain string — already
+    // matched by the quoted-literal pass above.
+    if (interpolation === -1) continue;
+    const prefix = tpl.slice(0, interpolation);
+    // Only a non-empty word-char prefix is statically checkable.
+    if (!prefix || !/^\w+$/.test(prefix)) continue;
+    dynamicPrefixes.push({ prefix, at: rel });
   }
 }
 
@@ -93,12 +110,32 @@ for (const cmd of [...defined].sort()) {
   }
 }
 
+// Dynamic template-literal families (`prefix_${expr}`) must resolve to at
+// least one registered command, otherwise the whole family is dead drift.
+const dynamicSorted = [...dynamicPrefixes].sort((a, b) =>
+  a.prefix === b.prefix ? a.at.localeCompare(b.at) : a.prefix.localeCompare(b.prefix),
+);
+for (const { prefix, at } of dynamicSorted) {
+  const family = [...registered].filter((c) => c.startsWith(prefix)).sort();
+  if (family.length === 0) {
+    failed = true;
+    console.error(
+      `✗ dynamic invoke(\`${prefix}_\${…}\`) at ${at} — no registered command starts with '${prefix}'`,
+    );
+  }
+}
+
 // Informational: registered but never invoked (kept as a warning list only).
 const uncalled = [...registered].filter((c) => !called.has(c)).sort();
 
 console.log(`Registered commands: ${registered.size}`);
 console.log(`#[tauri::command] definitions: ${defined.size}`);
 console.log(`Frontend invoke() literals: ${called.size}`);
+console.log(`Dynamic invoke() template-literal prefixes: ${dynamicPrefixes.length}`);
+for (const { prefix, at } of dynamicSorted) {
+  const family = [...registered].filter((c) => c.startsWith(prefix)).sort();
+  console.log(`  - ${prefix}* → ${family.join(', ')} (${at})`);
+}
 console.log(`Registered but never invoked from TS (informational): ${uncalled.length}`);
 
 if (failed) {
