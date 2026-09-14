@@ -1,15 +1,16 @@
 use super::*;
 
-/// Execute FFmpeg command with progress tracking
-#[tauri::command]
-pub async fn execute_ffmpeg_command(
+/// Shared FFmpeg execution core used by both `execute_ffmpeg_command`
+/// (single job with frontend-provided ids/paths) and `execute_ffmpeg_batch`
+/// (queue-driven batch runs that derive ids/paths server-side).
+async fn run_ffmpeg_job(
     app: AppHandle,
     job_id: String,
     command_args: Vec<String>,
     input_path: String,
     output_path: String,
 ) -> Result<(), String> {
-    println!("[FFMPEG] Starting execute_ffmpeg_command");
+    println!("[FFMPEG] Starting ffmpeg job");
     println!("[FFMPEG] Job ID: {}", job_id);
     println!("[FFMPEG] Args: {:?}", command_args);
     println!("[FFMPEG] Input: {}", input_path);
@@ -205,6 +206,49 @@ pub async fn execute_ffmpeg_command(
             Err("Processing cancelled".to_string())
         }
     }
+}
+
+/// Execute FFmpeg command with progress tracking (single job, frontend-managed).
+#[tauri::command]
+pub async fn execute_ffmpeg_command(
+    app: AppHandle,
+    job_id: String,
+    command_args: Vec<String>,
+    input_path: String,
+    output_path: String,
+) -> Result<(), String> {
+    run_ffmpeg_job(app, job_id, command_args, input_path, output_path).await
+}
+
+/// Batch-mode FFmpeg execution: the frontend supplies only the generated
+/// command args and the input file; the output path is derived from the input
+/// (same directory, `<stem>_processed.<ext>`) and a job id is minted locally.
+/// Registered in `lib.rs` so `invoke('execute_ffmpeg_batch')` resolves.
+#[tauri::command]
+pub async fn execute_ffmpeg_batch(
+    app: AppHandle,
+    command_args: Vec<String>,
+    input_path: String,
+) -> Result<(), String> {
+    let input = PathBuf::from(&input_path);
+    let stem = input
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("output")
+        .to_string();
+    let ext = input
+        .extension()
+        .and_then(|s| s.to_str())
+        .unwrap_or("mp4")
+        .to_string();
+    let output_path = input
+        .with_file_name(format!("{}_processed.{}", stem, ext))
+        .to_string_lossy()
+        .to_string();
+
+    let job_id = uuid::Uuid::new_v4().to_string();
+    println!("[FFMPEG] Batch job {} for {}", job_id, input_path);
+    run_ffmpeg_job(app, job_id, command_args, input_path, output_path).await
 }
 
 #[tauri::command]

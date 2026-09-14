@@ -1471,6 +1471,182 @@ pub async fn get_available_subtitles(
     Ok(subtitles)
 }
 
+/// Download a single subtitle track's content and return it as a string.
+///
+/// Used by the Subtitle Download Dialog to load a subtitle file into the
+/// editor without touching the download queue. The frontend calls
+/// `invoke('download_subtitle_content', ...)`; the command must stay
+/// registered in `lib.rs` or the dialog fails at runtime.
+#[tauri::command]
+pub async fn download_subtitle_content(
+    app: AppHandle,
+    url: String,
+    lang: String,
+    is_auto: Option<bool>,
+    format: Option<String>,
+    cookie_mode: Option<String>,
+    cookie_browser: Option<String>,
+    cookie_browser_profile: Option<String>,
+    cookie_file_path: Option<String>,
+    cookie_skip_patterns: Option<Vec<String>>,
+    proxy_url: Option<String>,
+) -> Result<String, String> {
+    validate_url(&url).map_err(|e| BackendError::from_message(e).to_wire_string())?;
+    let url = normalize_url(&url);
+    let is_auto = is_auto.unwrap_or(false);
+    // yt-dlp accepts a preference list; keep the requested format first and
+    // fall back to vtt/best so the dialog still works on sites without srt.
+    let fmt = match format.as_deref() {
+        Some(f) if !f.trim().is_empty() => f.trim().to_string(),
+        _ => "srt".to_string(),
+    };
+    let sub_format = format!("{}/vtt/best", fmt);
+
+    let temp_dir = std::env::temp_dir().join(format!("youwee-subs-{}", Uuid::new_v4()));
+    tokio::fs::create_dir_all(&temp_dir)
+        .await
+        .map_err(|e| format!("Failed to create temp directory: {}", e))?;
+
+    let mut args = vec![
+        "--skip-download".to_string(),
+        "--no-warnings".to_string(),
+        "--no-playlist".to_string(),
+        "--sub-langs".to_string(),
+        lang.clone(),
+        "--sub-format".to_string(),
+        sub_format,
+        "--write-subs".to_string(),
+    ];
+    if is_auto {
+        args.push("--write-auto-subs".to_string());
+    }
+
+    // Deno runtime for YouTube (JS extractor requirement)
+    if url.contains("youtube.com") || url.contains("youtu.be") {
+        if let Some(deno_path) = get_deno_path(&app).await {
+            args.push("--js-runtimes".to_string());
+            args.push(format!("deno:{}", deno_path.to_string_lossy()));
+        }
+    }
+
+    args.push("--output".to_string());
+    args.push(
+        temp_dir
+            .join("sub")
+            .to_string_lossy()
+            .to_string(),
+    );
+    args.push("--".to_string());
+    args.push(url.clone());
+
+    let args_ref: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
+
+    let result = run_ytdlp_with_stderr_and_cookies(
+        &app,
+        &args_ref,
+        cookie_mode.as_deref(),
+        cookie_browser.as_deref(),
+        cookie_browser_profile.as_deref(),
+        cookie_file_path.as_deref(),
+        cookie_skip_patterns.as_deref(),
+        proxy_url.as_deref(),
+    )
+    .await;
+
+    let cleanup = |dir: &std::path::Path| {
+        let _ = std::fs::remove_dir_all(dir);
+    };
+
+    let run = match result {
+        Ok(run) => run,
+        Err(e) => {
+            cleanup(&temp_dir);
+            return Err(e);
+        }
+    };
+    if !run.success {
+        cleanup(&temp_dir);
+        let message = parse_ytdlp_error(&run.stderr)
+            .map(|e| e.to_wire_string())
+            .unwrap_or_else(|| {
+                let stderr = run.stderr.trim();
+                if stderr.is_empty() {
+                    "Failed to download subtitle.".to_string()
+                } else {
+                    format!("Failed to download subtitle: {}", stderr)
+                }
+            });
+        return Err(message);
+    }
+
+    // yt-dlp writes `<output>.<lang>.(srt|vtt|...)` — pick the file whose
+    // name contains the requested language tag, otherwise the only subtitle
+    // file present (yt-dlp may normalize the lang code, e.g. en-US).
+    let mut found: Option<std::path::PathBuf> = None;
+    let mut fallback: Option<std::path::PathBuf> = None;
+    let mut entries = match tokio::fs::read_dir(&temp_dir).await {
+        Ok(entries) => entries,
+        Err(e) => {
+            cleanup(&temp_dir);
+            return Err(format!("Failed to read temp directory: {}", e));
+        }
+    };
+    while let Some(entry) = entries.next_entry().await.ok().flatten() {
+        let path = entry.path();
+        if !path.is_file() {
+            continue;
+        }
+        let name = path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or_default()
+            .to_lowercase();
+        let is_sub = name.ends_with(".srt")
+            || name.ends_with(".vtt")
+            || name.ends_with(".ass")
+            || name.ends_with(".ssa")
+            || name.ends_with(".srv3")
+            || name.ends_with(".ttml");
+        if !is_sub {
+            continue;
+        }
+        if fallback.is_none() {
+            fallback = Some(path.clone());
+        }
+        let lang_l = lang.to_lowercase();
+        if name.contains(&format!(".{}.", lang_l)) || name.contains(&format!(".{}", lang_l)) {
+            found = Some(path);
+            break;
+        }
+    }
+
+    let file_path = found.or(fallback);
+    let Some(file_path) = file_path else {
+        cleanup(&temp_dir);
+        return Err(if is_auto {
+            "No auto-generated subtitle was found for the selected language.".to_string()
+        } else {
+            "No subtitle file was downloaded for the selected language.".to_string()
+        });
+    };
+
+    let content = match std::fs::read_to_string(&file_path) {
+        Ok(content) => content,
+        Err(e) => {
+            cleanup(&temp_dir);
+            return Err(format!("Failed to read downloaded subtitle: {}", e));
+        }
+    };
+
+    cleanup(&temp_dir);
+
+    if content.trim().is_empty() {
+        return Err("The downloaded subtitle file is empty.".to_string());
+    }
+
+    Ok(content)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

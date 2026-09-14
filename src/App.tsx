@@ -1,3 +1,4 @@
+import { DirectionProvider } from '@radix-ui/react-direction';
 import { invoke } from '@tauri-apps/api/core';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -35,6 +36,7 @@ import { useTelegramRemoteCommands } from '@/hooks/useTelegramRemoteCommands';
 import { useTrayDownloadStatus } from '@/hooks/useTrayDownloadStatus';
 import { useTrayEvents } from '@/hooks/useTrayEvents';
 import { useYtdlpAutoUpdateToast } from '@/hooks/useYtdlpAutoUpdateToast';
+import { runDevCommandSmoke } from '@/lib/dev-command-smoke';
 import {
   ChannelsPage,
   DownloadPage,
@@ -98,6 +100,14 @@ function AppContent() {
   useYtdlpAutoUpdateToast({
     onOpenDependencies: openDependenciesSettings,
   });
+
+  useEffect(() => {
+    // Dev-only: probe safe startup commands and warn on any failure
+    // (catches unregistered/signature-drifted Tauri commands early).
+    if (import.meta.env.DEV) {
+      runDevCommandSmoke();
+    }
+  }, []);
 
   useEffect(() => {
     const locale = i18n.resolvedLanguage || i18n.language || 'en';
@@ -237,42 +247,52 @@ function UpdaterWrapper({ children }: { children: React.ReactNode }) {
   return <UpdaterProvider autoCheck={settings.autoCheckUpdate}>{children}</UpdaterProvider>;
 }
 
+function AppDirectionProvider({ children }: { children: React.ReactNode }) {
+  const { i18n } = useTranslation();
+  const baseLanguage = (i18n.resolvedLanguage || i18n.language || 'en').toLowerCase().split('-')[0];
+  // Mirrors RTL_LANGUAGES in src/i18n/index.ts (ar, fa).
+  const dir = baseLanguage === 'ar' || baseLanguage === 'fa' ? 'rtl' : 'ltr';
+  return <DirectionProvider dir={dir}>{children}</DirectionProvider>;
+}
+
 export function App() {
   return (
-    <ThemeProvider>
-      <DependenciesProvider>
-        <DownloadProvider>
-          <UniversalProvider>
-            <GalleryDlProvider>
-              <ChannelsProvider>
-                <LogProvider>
-                  <HistoryProvider>
-                    <PlayerProvider>
-                      <AIProvider>
-                        <SummarySessionProvider>
-                          <ProcessingProvider>
-                            <SubtitleProvider>
-                              <MetadataProvider>
-                                <DataExportProvider>
-                                  <ToastProvider>
-                                    <UpdaterWrapper>
-                                      <AppContent />
-                                    </UpdaterWrapper>
-                                  </ToastProvider>
-                                </DataExportProvider>
-                              </MetadataProvider>
-                            </SubtitleProvider>
-                          </ProcessingProvider>
-                        </SummarySessionProvider>
-                      </AIProvider>
-                    </PlayerProvider>
-                  </HistoryProvider>
-                </LogProvider>
-              </ChannelsProvider>
-            </GalleryDlProvider>
-          </UniversalProvider>
-        </DownloadProvider>
-      </DependenciesProvider>
-    </ThemeProvider>
+    <AppDirectionProvider>
+      <ThemeProvider>
+        <DependenciesProvider>
+          <DownloadProvider>
+            <UniversalProvider>
+              <GalleryDlProvider>
+                <ChannelsProvider>
+                  <LogProvider>
+                    <HistoryProvider>
+                      <PlayerProvider>
+                        <AIProvider>
+                          <SummarySessionProvider>
+                            <ProcessingProvider>
+                              <SubtitleProvider>
+                                <MetadataProvider>
+                                  <DataExportProvider>
+                                    <ToastProvider>
+                                      <UpdaterWrapper>
+                                        <AppContent />
+                                      </UpdaterWrapper>
+                                    </ToastProvider>
+                                  </DataExportProvider>
+                                </MetadataProvider>
+                              </SubtitleProvider>
+                            </ProcessingProvider>
+                          </SummarySessionProvider>
+                        </AIProvider>
+                      </PlayerProvider>
+                    </HistoryProvider>
+                  </LogProvider>
+                </ChannelsProvider>
+              </GalleryDlProvider>
+            </UniversalProvider>
+          </DownloadProvider>
+        </DependenciesProvider>
+      </ThemeProvider>
+    </AppDirectionProvider>
   );
 }

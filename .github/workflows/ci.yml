@@ -23,6 +23,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      - name: Tauri command consistency check
+        run: node scripts/check-tauri-commands.mjs
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:

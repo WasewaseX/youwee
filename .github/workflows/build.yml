@@ -1,9 +1,12 @@
-name: Build & Release
+name: Build & Release (signed)
+
+# NOTE (fork): tag-push triggering is DISABLED here because this workflow
+# requires TAURI_SIGNING_PRIVATE_KEY / FIREFOX_AMO_* secrets that this fork
+# does not have. Unsigned builds & releases are handled by
+# `beta-release.yml` (triggers on `v*` tags). Re-enable the tag trigger
+# below once signing secrets are configured.
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
     inputs:
       release:

@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
+use std::time::Duration;
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -9,6 +10,24 @@ use tauri::{AppHandle, Emitter};
 const TELEGRAM_API_BASE: &str = "https://api.telegram.org";
 const LONG_POLL_TIMEOUT_SECS: u64 = 30;
 const MAX_BACKOFF_SECS: u64 = 60;
+/// Connect timeout so a dead/unreachable network fails fast and the polling
+/// loop can back off instead of hanging forever (upstream issue #118).
+const CONNECT_TIMEOUT_SECS: u64 = 15;
+/// Generous total request timeout: must exceed the 30s long-poll window plus
+/// network latency, while still guaranteeing a wedged connection eventually
+/// errors out so the loop can retry.
+const REQUEST_TIMEOUT_SECS: u64 = LONG_POLL_TIMEOUT_SECS + 90;
+
+/// Shared HTTP client for every Telegram API call. `Client::new()` has no
+/// timeouts at all, which let a dead connection block the polling loop
+/// indefinitely (bot appeared frozen / "doesn't work").
+fn telegram_client() -> Client {
+    Client::builder()
+        .connect_timeout(Duration::from_secs(CONNECT_TIMEOUT_SECS))
+        .timeout(Duration::from_secs(REQUEST_TIMEOUT_SECS))
+        .build()
+        .unwrap_or_else(|_| Client::new())
+}
 
 static TELEGRAM_CONFIG: Mutex<TelegramConfig> = Mutex::new(TelegramConfig {
     enabled: false,
@@ -213,7 +232,7 @@ pub fn set_config(app: AppHandle, config: TelegramConfig) {
     let bot_token = sanitized.bot_token.clone();
     let command_app = app.clone();
     tauri::async_runtime::spawn(async move {
-        if let Err(error) = set_my_commands(&Client::new(), &bot_token).await {
+        if let Err(error) = set_my_commands(&telegram_client(), &bot_token).await {
             if set_status(TelegramStatusState::Error, Some(error)) {
                 crate::rebuild_tray_menu(&command_app);
             }
@@ -244,7 +263,7 @@ pub async fn send_reply(chat_id: String, text: String) -> Result<(), String> {
         return Err("Telegram is not configured.".to_string());
     }
 
-    send_message_with_keyboard(&Client::new(), &config.bot_token, &chat_id, &text).await
+    send_message_with_keyboard(&telegram_client(), &config.bot_token, &chat_id, &text).await
 }
 
 fn sanitize_config(config: TelegramConfig) -> TelegramConfig {
@@ -282,7 +301,7 @@ fn replace_polling_task(handle: tauri::async_runtime::JoinHandle<()>) {
 }
 
 async fn run_polling_loop(app: AppHandle, config: TelegramConfig, generation: u64) {
-    let client = Client::new();
+    let client = telegram_client();
     let allowed_chat_ids: HashSet<String> = config.allowed_chat_ids.iter().cloned().collect();
     let mut backoff_secs = 2;
 

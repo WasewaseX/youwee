@@ -1,0 +1,378 @@
+name: Beta Release (unsigned)
+
+# Unsigned dev-build pipeline for this fork. Builds installers for all
+# supported platforms on every `v*` tag push and attaches them to an
+# automatically created BETA prerelease. No signing secrets required:
+# `tauri.beta.conf.json` disables updater artifacts, so the build works
+# without TAURI_SIGNING_PRIVATE_KEY.
+#
+# NOTE: binaries are UNSIGNED — Windows SmartScreen and macOS Gatekeeper
+# will show warnings. That is expected for beta builds; see the release
+# notes that this workflow generates.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      prerelease_suffix:
+        description: 'Release title suffix (used only with workflow_dispatch)'
+        required: false
+        default: 'beta'
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install frontend dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Tauri command consistency check
+        run: node scripts/check-tauri-commands.mjs
+
+      - name: Frontend typecheck + build
+        run: bun run build
+
+  build:
+    needs: static-checks
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # macOS Apple Silicon
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            os_name: macos
+            arch: aarch64
+            friendly_name: Mac-Apple-Silicon
+            yt_dlp_url: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos
+            yt_dlp_name: youwee-yt-dlp-aarch64-apple-darwin
+
+          # macOS Intel (yt-dlp_macos is a Universal Binary)
+          - platform: macos-15
+            target: x86_64-apple-darwin
+            os_name: macos
+            arch: x86_64
+            friendly_name: Mac-Intel
+            yt_dlp_url: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos
+            yt_dlp_name: youwee-yt-dlp-x86_64-apple-darwin
+
+          # Linux x86_64
+          - platform: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            os_name: linux
+            arch: x86_64
+            friendly_name: Linux
+            yt_dlp_url: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux
+            yt_dlp_name: youwee-yt-dlp-x86_64-unknown-linux-gnu
+
+          # Windows x86_64
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            os_name: windows
+            arch: x86_64
+            friendly_name: Windows
+            yt_dlp_url: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe
+            yt_dlp_name: youwee-yt-dlp-x86_64-pc-windows-msvc.exe
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+          key: ${{ matrix.target }}
+
+      - name: Install Linux dependencies
+        if: matrix.os_name == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev
+
+      - name: Install frontend dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Download yt-dlp binary (Unix)
+        if: matrix.os_name != 'windows'
+        run: |
+          mkdir -p src-tauri/bin
+          curl -L -o "src-tauri/bin/${{ matrix.yt_dlp_name }}" "${{ matrix.yt_dlp_url }}"
+          chmod +x "src-tauri/bin/${{ matrix.yt_dlp_name }}"
+          ls -la src-tauri/bin/
+
+      - name: Download yt-dlp binary (Windows)
+        if: matrix.os_name == 'windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path src-tauri/bin
+          Invoke-WebRequest -Uri "${{ matrix.yt_dlp_url }}" -OutFile "src-tauri/bin/${{ matrix.yt_dlp_name }}"
+          Get-ChildItem src-tauri/bin/
+
+      # Unsigned beta build: config overlay disables updater artifacts so no
+      # signing key is needed.
+      - name: Build Tauri app (unsigned)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tauriScript: bun run tauri
+          args: --target ${{ matrix.target }} --config src-tauri/tauri.beta.conf.json
+
+      - name: Fix Linux deep-link desktop entry
+        if: matrix.os_name == 'linux'
+        run: |
+          bash scripts/fix-deb-deep-link-desktop-entry.sh \
+            "src-tauri/target/${{ matrix.target }}/release/bundle/deb"
+
+      - name: Rename artifacts with friendly names (macOS)
+        if: matrix.os_name == 'macos'
+        run: |
+          cd src-tauri/target/${{ matrix.target }}/release/bundle
+          cd dmg
+          for f in *.dmg; do
+            mv "$f" "Youwee-${{ matrix.friendly_name }}.dmg"
+          done
+          cd ..
+          ls -la dmg
+
+      - name: Rename artifacts with friendly names (Linux)
+        if: matrix.os_name == 'linux'
+        run: |
+          cd src-tauri/target/${{ matrix.target }}/release/bundle
+          if [ -d "deb" ]; then
+            cd deb
+            for f in *.deb; do
+              mv "$f" "Youwee-${{ matrix.friendly_name }}.deb"
+            done
+            cd ..
+          fi
+          if [ -d "appimage" ]; then
+            cd appimage
+            for f in *.AppImage; do
+              mv "$f" "Youwee-${{ matrix.friendly_name }}.AppImage"
+            done
+            cd ..
+          fi
+          ls -laR
+
+      - name: Rename artifacts with friendly names (Windows)
+        if: matrix.os_name == 'windows'
+        shell: pwsh
+        run: |
+          cd src-tauri/target/${{ matrix.target }}/release/bundle
+          if (Test-Path "msi") {
+            cd msi
+            Get-ChildItem *.msi | ForEach-Object {
+              Rename-Item $_.Name "Youwee-${{ matrix.friendly_name }}.msi"
+            }
+            cd ..
+          }
+          if (Test-Path "nsis") {
+            cd nsis
+            Get-ChildItem *.exe | ForEach-Object {
+              Rename-Item $_.Name "Youwee-${{ matrix.friendly_name }}-Setup.exe"
+            }
+            cd ..
+          }
+          Get-ChildItem -Recurse
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: youwee-beta-${{ matrix.os_name }}-${{ matrix.arch }}
+          path: |
+            src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
+            src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb
+            src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
+            src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi
+            src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe
+          if-no-files-found: error
+
+  extension:
+    runs-on: ubuntu-latest
+    needs: static-checks
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build and package extension (unsigned Chromium zip)
+        run: bun run ext:package
+
+      - name: Upload extension artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: youwee-beta-extension
+          path: extensions/youwee-webext/dist/packages/Youwee-Extension-Chromium.zip
+          if-no-files-found: error
+
+  release:
+    needs: [build, extension]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v7
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: find artifacts -type f | sort
+
+      - name: Generate SHA256 checksums
+        run: |
+          cd artifacts
+          echo "# SHA256 Checksums for Youwee $GITHUB_REF_NAME (beta)" > ../SHA256SUMS.txt
+          echo "# Generated: $(date -u)" >> ../SHA256SUMS.txt
+          echo "" >> ../SHA256SUMS.txt
+          find . -type f \( \
+            -name "*.dmg" -o \
+            -name "*.msi" -o \
+            -name "*.exe" -o \
+            -name "*.deb" -o \
+            -name "*.AppImage" -o \
+            -name "Youwee-Extension-*.zip" \
+          \) | sort | while read file; do
+            filename=$(basename "$file")
+            hash=$(sha256sum "$file" | cut -d' ' -f1)
+            echo "$hash  $filename" >> ../SHA256SUMS.txt
+          done
+          cd ..
+          echo "Generated SHA256SUMS.txt:"
+          cat SHA256SUMS.txt
+
+      - name: Create beta release body
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          # Commits since the previous tag (or the last 40 when this is the first tag)
+          PREV_TAG="$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || true)"
+          if [ -n "$PREV_TAG" ]; then
+            CHANGELOG="$(git log --no-decorate --format='- %s (%h)' "${PREV_TAG}..HEAD" | head -40)"
+          else
+            CHANGELOG="$(git log --no-decorate --format='- %s (%h)' -40 | head -40)"
+          fi
+
+          cat > RELEASE_BODY.md << HEADER_EOF
+          # Youwee ${VERSION}
+
+          Automated beta build off the round4-fixes branch. Found something broken? Open an issue.
+
+          ## What's in this beta
+          HEADER_EOF
+          # NOTE: do not use ${CHANGELOG:+echo ...} here — a redirect inside a
+          # ${var:+word} alternative is not parsed as a redirection, so the
+          # changelog would leak to the job log instead of the file.
+          if [ -n "$CHANGELOG" ]; then
+            printf '%s\n' "$CHANGELOG" >> RELEASE_BODY.md
+          fi
+
+          cat >> RELEASE_BODY.md << FOOTER_EOF
+
+          ## Downloads
+
+          | Platform | File | Notes |
+          |----------|------|-------|
+          | **Windows** | \`Youwee-Windows-Setup.exe\` | NSIS installer (x64) |
+          | **Windows** | \`Youwee-Windows.msi\` | MSI installer (x64) |
+          | **Mac (Apple Silicon)** | \`Youwee-Mac-Apple-Silicon.dmg\` | M1/M2/M3/M4 |
+          | **Mac (Intel)** | \`Youwee-Mac-Intel.dmg\` | Intel Macs |
+          | **Linux** | \`Youwee-Linux.deb\` | Debian/Ubuntu |
+          | **Linux** | \`Youwee-Linux.AppImage\` | Portable, may require FUSE |
+          | **Extension (Chromium)** | \`Youwee-Extension-Chromium.zip\` | Unzip → \`chrome://extensions\` → Load unpacked |
+
+          ## ⚠️ Unsigned build — SmartScreen / Gatekeeper WILL warn
+
+          These binaries are **not code-signed** (no signing certificate in this fork).
+
+          **Windows (SmartScreen):** When launching the installer you may see
+          *"Windows protected your PC"*. Click **More info → Run anyway**.
+
+          **macOS (Gatekeeper):** The app may be blocked with *"cannot be opened because the
+          developer cannot be verified"*. Right-click the app → **Open → Open**, or run:
+          \`xattr -cr /Applications/Youwee.app\`
+
+          If the app "refuses to open" or shows a blank window after a warning was dismissed,
+          it is very likely the OS trust prompt — not a crash.
+
+          ## Verify downloads
+          \`\`\`bash
+          sha256sum -c SHA256SUMS.txt
+          \`\`\`
+
+          ## Requirements
+          - **Windows**: Windows 10 or later
+          - **macOS**: 10.15 (Catalina) or later
+          - **Linux**: Ubuntu 20.04 or equivalent
+          - Engines (yt-dlp / FFmpeg / gallery-dl / Deno) auto-download in **Settings → Engines**
+          FOOTER_EOF
+          echo "Generated RELEASE_BODY.md:"
+          cat RELEASE_BODY.md
+
+
+      - name: Create beta release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Youwee ${{ github.ref_name }} (beta)
+          tag_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: true
+          generate_release_notes: true
+          body_path: RELEASE_BODY.md
+          files: |
+            artifacts/**/*.dmg
+            artifacts/**/*.deb
+            artifacts/**/*.AppImage
+            artifacts/**/*.msi
+            artifacts/**/*.exe
+            artifacts/**/Youwee-Extension-*.zip
+            SHA256SUMS.txt
