@@ -223,20 +223,26 @@ pub fn redact_ytdlp_advanced_args(args: &[String]) -> Vec<String> {
 
 /// Masks the query string (and any embedded credentials) of a URL before it is
 /// written to logs or shown in the diagnostics panel. The scheme, host and path
-/// are preserved so the command stays recognizable.
+/// are preserved so the command stays recognizable. The marker is composed
+/// manually instead of going through `Url::set_query`, which would
+/// percent-encode the angle brackets into `%3Credacted%3E`.
 pub fn redact_url_for_log(url: &str) -> String {
-    let Ok(mut parsed) = reqwest::Url::parse(url) else {
+    let Ok(parsed) = reqwest::Url::parse(url) else {
         return url.split(['?', '&']).next().unwrap_or(url).to_string();
     };
-    if parsed.query().map_or(false, |q| !q.is_empty()) {
-        parsed.set_query(Some("<redacted>"));
-    }
-    if parsed.username().is_empty() && parsed.password().is_none() {
+    let has_query = parsed.query().map_or(false, |q| !q.is_empty());
+    if parsed.username().is_empty() && parsed.password().is_none() && !has_query {
         return parsed.to_string();
     }
-    let _ = parsed.set_username("");
-    let _ = parsed.set_password(None);
-    parsed.to_string()
+    let host = match parsed.port() {
+        Some(port) => format!("{}:{port}", parsed.host_str().unwrap_or_default()),
+        None => parsed.host_str().unwrap_or_default().to_string(),
+    };
+    let mut redacted = format!("{}://{}{}", parsed.scheme(), host, parsed.path());
+    if has_query {
+        redacted.push_str("?<redacted>");
+    }
+    redacted
 }
 
 /// Redacts a full yt-dlp arg vector for logs / diagnostics. When `redact_url` is
@@ -864,7 +870,9 @@ mod tests {
 
     #[test]
     fn build_ytdlp_raw_args_rejects_non_allowlisted_flags() {
-        let err = build_ytdlp_raw_args("--output /tmp/x.mp4")
+        // A flag in neither the allowlist nor the blocklist falls through to
+        // the allowlist rejection. (--output would hit the blocklist first.)
+        let err = build_ytdlp_raw_args("--write-subs")
             .expect_err("app-managed flags must be rejected");
         assert!(err.message().contains("not in the safe allowlist"));
 
