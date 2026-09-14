@@ -1263,8 +1263,8 @@ pub fn build_download_args(req: &DownloadArgsRequest) -> Result<BuiltDownloadArg
         }
     }
 
-    // Force overwrite to avoid HTTP 416 errors from stale .part files
-    args.push("--force-overwrites".to_string());
+    // upstream always passes --force-overwrites, which wipes .part files and
+    // kills resume. yt-dlp handles the stale-part 416 case itself.
 
     // Playlist handling
     if !req.download_playlist {
