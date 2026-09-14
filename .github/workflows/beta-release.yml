@@ -303,10 +303,9 @@ jobs:
           fi
 
           cat > RELEASE_BODY.md << HEADER_EOF
-          # Youwee ${VERSION} — BETA
+          # Youwee ${VERSION}
 
-          > **This is an automated beta build from the \`round4-fixes\` branch.**
-          > Found something broken? Please open an issue.
+          Automated beta build off the round4-fixes branch. Found something broken? Open an issue.
 
           ## What's in this beta
           HEADER_EOF
