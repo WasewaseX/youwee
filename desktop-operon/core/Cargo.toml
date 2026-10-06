@@ -1,0 +1,8 @@
+[package]
+name = "ywcore"
+version = "1.0.0"
+edition = "2021"
+description = "Youwee Operon core — embeds the operon interpreter and bridges the native egui host to the Youwee app logic written in operon"
+
+[dependencies]
+operon = { path = "../../../tf-operon" }

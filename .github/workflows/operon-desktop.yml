@@ -1,0 +1,111 @@
+name: operon-desktop
+
+# Youwee Operon Edition — native Windows build (egui host + embedded operon).
+# Ships a single exe with aria2c as the ONLY bundled tool; yt-dlp/ffmpeg come
+# from the user's PATH. Gates: tests + end-to-end flow + smoke of the actual
+# exe + the 30 MB size ceiling.
+
+on:
+  push:
+    branches: [main]
+    paths: ["desktop-operon/**", ".github/workflows/operon-desktop.yml"]
+    tags: ["v*"]
+  pull_request:
+    paths: ["desktop-operon/**", ".github/workflows/operon-desktop.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Youwee (operon port lane)
+        uses: actions/checkout@v4
+        with:
+          path: youwee
+
+      - name: Checkout operon (pinned, for the embedded interpreter)
+        uses: actions/checkout@v4
+        with:
+          repository: WasewaseX/operon-lang-dev
+          ref: c578b04767dfdd9d38d93f70745a32b261498d5c
+          path: tf-operon
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Download aria2 (win-64bit build)
+        shell: pwsh
+        run: |
+          $url = "https://github.com/aria2/aria2/releases/download/release-1.37.0/aria2-1.37.0-win-64bit-build1.zip"
+          Invoke-WebRequest -Uri $url -OutFile aria2.zip
+          Expand-Archive -Path aria2.zip -DestinationPath aria2-out
+          $exe = Get-ChildItem -Recurse -Path aria2-out -Filter "aria2c.exe" | Select-Object -First 1
+          Write-Host "aria2c at: $($exe.FullName)"
+          "TF_ARIA2=$($exe.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $zip = Get-ChildItem -Recurse -Path aria2-out -Filter "*.txt" | Select-Object -First 1
+          if ($zip) { Copy-Item $zip.FullName aria2-license.txt }
+
+      - name: Build (release, size-tuned)
+        shell: pwsh
+        working-directory: youwee/desktop-operon
+        run: cargo build --release -p youwee-operon
+
+      # "it actually works" gates on the TARGET OS:
+      #  1) cargo test — the core unit tests (incl. the Youwee option tests)
+      #     PLUS the cross-platform end-to-end flow regression (fake-ytdlp
+      #     child outlives the interpreter's run() containment while progress
+      #     flows operon-side)
+      #  2) smoke — runs THIS shipped exe headlessly (--smoke): the exact GUI
+      #     boot path, aria2 extraction from the embedded blob, operon
+      #     ev_init on a tool-less runner, state-machine tick
+      - name: Test (unit + Youwee options + end-to-end flow)
+        shell: pwsh
+        working-directory: youwee/desktop-operon
+        run: cargo test --release -p ywcore
+
+      - name: Smoke (run the shipped exe headlessly)
+        shell: pwsh
+        run: |
+          $out = & "youwee/desktop-operon/target/release/youwee-operon.exe" --smoke
+          $code = $LASTEXITCODE
+          $out | ForEach-Object { Write-Host "  $_" }
+          if ($code -ne 0) { throw "SMOKE FAILED (exit $code) — the exe cannot boot" }
+
+      - name: "Report size (gate: under 30 MB)"
+        shell: pwsh
+        run: |
+          $exe = "youwee/desktop-operon/target/release/youwee-operon.exe"
+          $mb = [math]::Round((Get-Item $exe).Length / 1MB, 1)
+          Write-Host "youwee-operon.exe = $mb MB"
+          if ($mb -ge 30) { throw "size gate FAILED: $mb MB >= 30 MB" }
+
+      - name: Package (exe + checksums + aria2 license)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item youwee/desktop-operon/target/release/youwee-operon.exe dist/Youwee-Operon.exe
+          $h = (Get-FileHash dist/Youwee-Operon.exe -Algorithm SHA256).Hash.ToLower()
+          "$h  Youwee-Operon.exe" | Out-File -Encoding ascii dist/SHA256SUMS.txt
+          if (Test-Path aria2-license.txt) { Copy-Item aria2-license.txt dist/ }
+          Compress-Archive -Path dist/* -DestinationPath Youwee-Operon-win-x64.zip -Force
+          Write-Host "zip:" (Get-Item Youwee-Operon-win-x64.zip).Length "bytes"
+
+      - name: Upload artifact (every run)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Youwee-Operon-win-x64
+          path: |
+            Youwee-Operon-win-x64.zip
+            dist/SHA256SUMS.txt
+
+      - name: Attach to release (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            Youwee-Operon-win-x64.zip
+            dist/SHA256SUMS.txt
+          fail_on_unmatched_files: true
