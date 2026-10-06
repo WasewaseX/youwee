@@ -1,0 +1,23 @@
+[package]
+name = "youwee-operon"
+version = "1.0.0"
+edition = "2021"
+description = "Youwee Operon Edition — the Youwee downloader core ported to the operon language: a real native desktop app (no localhost, no browser, aria2-only bundle)"
+build = "build.rs"
+
+[[bin]]
+name = "youwee-operon"
+path = "src/main.rs"
+
+[dependencies]
+ywcore = { path = "../core" }
+operon = { path = "../../../tf-operon" }
+eframe = { version = "0.31", default-features = false, features = [
+    "glow",
+    "default_fonts",
+    "x11",
+    "wayland",
+] }
+
+[build-dependencies]
+# none — the aria2 embed is plain std

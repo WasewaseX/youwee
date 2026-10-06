@@ -45,3 +45,6 @@ venv/
 build/
 *.dmg
 *.app
+
+# Youwee Operon Edition (desktop-operon)
+desktop-operon/target/

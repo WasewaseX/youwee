@@ -1,0 +1,519 @@
+# desktop-operon/op/app.op — Youwee Operon Edition, the brain.
+#
+# This is the operon port of Youwee's downloader core: every decision the
+# app makes lives in this file, written in Operon and embedded in a native
+# egui window (no HTTP server, no browser, no Python). Division of labor:
+#
+#   this file decides —  URL validation, yt-dlp argv building (audio
+#                        formats mp3/m4a/opus, subtitles, SponsorBlock,
+#                        speed limits, playlist mode), progress-line
+#                        parsing, the job state machine, settings + history
+#                        persistence, tool detection, theme persistence.
+#   the host executes —  one native window, long-lived child processes
+#                        (yt-dlp runs for minutes; the interpreter's run()
+#                        containment caps children at 5 minutes BY DESIGN,
+#                        so the host — the capability-granting authority —
+#                        supervises the long effectors itself), the clock.
+#
+# Protocol: every host call lands here as ONE JSON argument and the return
+# value is ONE JSON map. No hidden channels, no globals across the boundary
+# except the state defined below (the app's own).
+
+let JOBS = {}      # id -> job map: the live download registry
+let METAS = {}     # id -> fetched metadata + the format menu
+let SETTINGS = {
+    out_dir: "",
+    prefer: "bv*+ba/b",
+    template: "%(title).80s.%(ext)s",
+    mode: "aria2",
+    # --- Youwee feature surface (ported) ---
+    audio_format: "mp3",     # mp3 | m4a | opus
+    subs: false,             # write subtitle sidecar files
+    embed_subs: false,       # embed subtitles into the output file
+    sponsorblock: false,     # remove sponsor/intro/outro/selfpromo segments
+    speed_limit: "",         # "" = unlimited; otherwise e.g. "5M", "300K"
+    playlist: false,         # allow full-playlist downloads
+    theme: "midnight"        # persisted for the host's renderer
+}
+let TOOLS = { ytdlp: {ok: false, ver: "", src: "PATH"}, ffmpeg: {ok: false, ver: "", src: "PATH"}, aria2: {ok: false, ver: "", src: "bundled"} }
+let HISTORY = []   # newest first, capped
+let BOOT = { out_dir: "", data_dir: "", aria2: "" }
+let TOOLS_AT = 0   # last tool-probe clock (re-probe at most every 30 s)
+
+main {
+    return {ok: true, app: "youwee-operon", core: "operon"}
+}
+
+# ---------------------------------------------------------------- boot
+
+gene ev_init(cfg) {
+    BOOT.out_dir = cfg.out_dir
+    BOOT.data_dir = cfg.data_dir
+    BOOT.aria2 = cfg.aria2
+    SETTINGS.out_dir = cfg.out_dir
+    # settings persistence: load what the user tuned last run, then write the
+    # merged shape back so the file always reflects live truth
+    stress {
+        let s = json_parse(read_file(BOOT.data_dir + "/settings.json"))
+        if s.prefer != null { SETTINGS.prefer = s.prefer }
+        if s.template != null { SETTINGS.template = s.template }
+        if s.mode != null { SETTINGS.mode = s.mode }
+        if s.out_dir != null { SETTINGS.out_dir = s.out_dir }
+        if s.audio_format != null { SETTINGS.audio_format = s.audio_format }
+        if s.subs != null { SETTINGS.subs = s.subs }
+        if s.embed_subs != null { SETTINGS.embed_subs = s.embed_subs }
+        if s.sponsorblock != null { SETTINGS.sponsorblock = s.sponsorblock }
+        if s.speed_limit != null { SETTINGS.speed_limit = s.speed_limit }
+        if s.playlist != null { SETTINGS.playlist = s.playlist }
+        if s.theme != null { SETTINGS.theme = s.theme }
+    } rescue (e) {
+        # first run or unreadable settings: defaults stand
+        promote("[settings] defaults in use")
+    }
+    stress {
+        let h = json_parse(read_file(BOOT.data_dir + "/history.json"))
+        if h != null { HISTORY = h }
+    } rescue (e) {
+        HISTORY = []
+        promote("[history] fresh")
+    }
+    tf_settings_save()
+    sys_check()
+    return {ok: true, settings: SETTINGS, tools: TOOLS}
+}
+
+gene tf_settings_save() {
+    stress {
+        write_file(BOOT.data_dir + "/settings.json", json_str(SETTINGS))
+    } rescue (e) {
+        return false
+    }
+    return true
+}
+
+# ---------------------------------------------------------------- tools
+
+gene sys_check() {
+    TOOLS_AT = clock()
+    TOOLS.ytdlp = tf_probe("yt-dlp", ["--version"])
+    TOOLS.ffmpeg = tf_probe("ffmpeg", ["-version"])
+    if BOOT.aria2 != "" {
+        TOOLS.aria2 = {ok: true, ver: "bundled", src: BOOT.aria2}
+    } else {
+        TOOLS.aria2 = tf_probe("aria2c", ["--version"])
+    }
+    return TOOLS
+}
+
+gene tf_probe(name, args) {
+    # a missing tool raises `missing` stress (run() stresses when the binary
+    # cannot be spawned at all) — that is a MISSING TOOL, not a fatal app
+    # error: report it and let the UI show the red dot
+    stress {
+        let r = run(name, args)
+        if r.ok {
+            let ver = r.stdout.trim()
+            if len(ver) > 40 {
+                ver = ver.slice(0, 40)
+            }
+            return {ok: true, ver: ver, src: "PATH"}
+        }
+        return {ok: false, ver: "", src: "PATH"}
+    } rescue (e) {
+        return {ok: false, ver: "", src: "PATH"}
+    }
+}
+
+# ---------------------------------------------------------------- fetch (metadata)
+
+gene ev_fetch(url) {
+    let u = url.trim()
+    if len(u) < 11 {
+        return {ok: false, message: "that URL is too short to be real"}
+    }
+    if !u.starts("http://") and !u.starts("https://") {
+        return {ok: false, message: "enter a full http(s) URL"}
+    }
+    let id = "m" + str(clock())
+    METAS[id] = {id: id, url: u, state: "extracting", title: "", uploader: "", duration: 0, formats: [], error: null}
+    # the host runs this argv; -J dumps the full info JSON on stdout.
+    # --no-playlist stays on the FETCH regardless of playlist mode: the menu
+    # is built for one video; playlist mode only changes the download argv.
+    return {ok: true, id: id, argv: ["yt-dlp", "-J", "--no-warnings", "--no-playlist", u]}
+}
+
+gene dl_on_meta(ev) {
+    let id = ev.id
+    if !has(METAS, id) {
+        return {ok: false, message: "unknown fetch"}
+    }
+    if ev.ok == "0" {
+        METAS[id].state = "error"
+        METAS[id].error = ev.payload
+        return {ok: false, message: ev.payload}
+    }
+    stress {
+        let info = json_parse(ev.payload)
+        let menu = []
+        if info.formats != null {
+            for f in info.formats {
+                if f.height != null and f.height > 0 {
+                    let size = 0
+                    if f.filesize != null {
+                        size = f.filesize
+                    } else {
+                        if f.filesize_approx != null {
+                            size = f.filesize_approx
+                        }
+                    }
+                    push(menu, {id: f.format_id, label: str(f.height) + "p " + f.ext, height: f.height, ext: f.ext, size: size})
+                }
+            }
+        }
+        # dedupe by label, keep the highest resolution first (the format menu)
+        let sorted = menu.sort(gene (a, b) => a.height > b.height)
+        let seen = {}
+        let out = []
+        for f in sorted {
+            if !has(seen, f.label) {
+                seen[f.label] = true
+                push(out, f)
+            }
+        }
+        METAS[id].title = info.title
+        METAS[id].uploader = info.uploader
+        METAS[id].duration = info.duration
+        METAS[id].formats = out
+        METAS[id].state = "ready"
+        return {ok: true}
+    } rescue (e) {
+        METAS[id].state = "error"
+        METAS[id].error = "could not read metadata: " + e.message
+        return {ok: false, message: METAS[id].error}
+    }
+}
+
+gene ev_forget_meta(id) {
+    if has(METAS, id) {
+        METAS[id].state = "closed"
+    }
+    return {ok: true}
+}
+
+# ---------------------------------------------------------------- download
+
+gene ev_start(ev) {
+    if !has(METAS, ev.meta_id) {
+        return {ok: false, message: "no metadata for that fetch"}
+    }
+    let m = METAS[ev.meta_id]
+    let fmt = ev.format_id
+    if fmt == "" {
+        fmt = SETTINGS.prefer
+    }
+    let mode = ev.mode
+    if mode == "audio" {
+        fmt = "bestaudio/best"
+    }
+    let out = SETTINGS.out_dir
+    if out == "" {
+        out = BOOT.out_dir
+    }
+    let id = "j" + str(clock())
+    # the HOST spawns argv[0] — the program name leads the vector (the
+    # desktop contract: the host supervises, the brain decides)
+    let args = ["yt-dlp", "-f", fmt, "-o", out + "/" + SETTINGS.template, "--newline", "--progress", "--no-warnings"]
+    # playlist mode (Youwee): download whole playlists when the user says so
+    if !SETTINGS.playlist {
+        push(args, "--no-playlist")
+    }
+    if SETTINGS.mode == "aria2" and BOOT.aria2 != "" {
+        # aria2c is the only bundled tool: 8-connection accelerated fetch via
+        # yt-dlp's external downloader hook. The HOST puts BOOT.aria2's dir on
+        # the child PATH so yt-dlp finds it without touching the user's PATH.
+        push(args, "--downloader")
+        push(args, "aria2c")
+        let dlargs = "-x 8 -s 8 -k 1M --console-log-level=warn --file-allocation=none"
+        # speed limit (Youwee): "" or "0" means unlimited; anything else is
+        # passed straight to aria2's --max-overall-download-limit ("5M", "300K")
+        if SETTINGS.speed_limit != "" and SETTINGS.speed_limit != "0" {
+            dlargs = dlargs + " --max-overall-download-limit=" + SETTINGS.speed_limit
+        }
+        push(args, "--downloader-args")
+        push(args, "aria2c:" + dlargs)
+    }
+    if mode == "audio" {
+        # audio extraction with the USER'S chosen codec (Youwee: mp3/m4a/opus)
+        push(args, "-x")
+        push(args, "--audio-format")
+        push(args, SETTINGS.audio_format)
+    }
+    # SponsorBlock (Youwee): cut the segments yt-dlp marks
+    if SETTINGS.sponsorblock {
+        push(args, "--sponsorblock-remove")
+        push(args, "sponsor,intro,outro,selfpromo")
+    }
+    # subtitles (Youwee): sidecar files, optionally embedded into the file
+    if SETTINGS.subs {
+        push(args, "--write-subs")
+        push(args, "--sub-langs")
+        push(args, "en")
+    }
+    if SETTINGS.embed_subs {
+        # embedding needs a subtitle stream: make sure one is written first
+        if !SETTINGS.subs {
+            push(args, "--write-subs")
+            push(args, "--sub-langs")
+            push(args, "en")
+        }
+        push(args, "--embed-subs")
+    }
+    push(args, m.url)
+    JOBS[id] = {id: id, meta_id: ev.meta_id, url: m.url, title: m.title, format: fmt, state: "starting", progress: 0.0, speed: "", eta: "", error: null, cancel: false, started: clock()}
+    tf_history_add({title: m.title, url: m.url, format: fmt, state: "started", at: clock()})
+    return {ok: true, id: id, argv: args, out_dir: out}
+}
+
+# direct lane (Android): register a job with NO metadata — the HOST's own
+# downloader executes it (Android has no yt-dlp/ffmpeg/aria2 to exec; the
+# host streams the file itself and synthesizes the same "[download] x%"
+# progress lines). Every decision (state machine, history, cancel) stays here.
+gene ev_start_direct(ev) {
+    let url = ev.url.trim()
+    if url == "" {
+        return {ok: false, message: "empty url"}
+    }
+    let out = SETTINGS.out_dir
+    if out == "" {
+        out = BOOT.out_dir
+    }
+    let id = "j" + str(clock())
+    JOBS[id] = {id: id, meta_id: "", url: url, title: url, format: "direct", state: "starting", progress: 0.0, speed: "", eta: "", error: null, cancel: false, started: clock()}
+    tf_history_add({title: url, url: url, format: "direct", state: "started", at: clock()})
+    return {ok: true, id: id, argv: [], out_dir: out}
+}
+
+gene dl_on_line(ev) {
+    if !has(JOBS, ev.id) {
+        return null
+    }
+    let j = JOBS[ev.id]
+    if j.cancel {
+        return null
+    }
+    let t = ev.line.trim()
+    if !t.contains("[download]") {
+        return null
+    }
+    if !t.contains("%") {
+        return null
+    }
+    let pct = tf_percent(t)
+    if pct >= 0.0 {
+        j.state = "downloading"
+        j.progress = pct
+        let sp = tf_token_after(t, " at ")
+        if sp != "" {
+            j.speed = sp
+        }
+        let et = tf_token_after(t, "ETA ")
+        if et == "" {
+            et = tf_token_after(t, " in ")
+        }
+        if et != "" {
+            j.eta = et
+        }
+    }
+    return null
+}
+
+# "[download]  45.2% of ..." -> 45.2 ; no number found -> -1.0
+gene tf_percent(t) {
+    let parts = t.split("%")
+    if len(parts) < 2 {
+        return -1.0
+    }
+    let head = parts[0].trim()
+    let toks = head.split(" ")
+    if len(toks) < 1 {
+        return -1.0
+    }
+    let last = toks[len(toks) - 1]
+    if last == "" {
+        return -1.0
+    }
+    let n = num(last)
+    if n > 100.0 {
+        return -1.0
+    }
+    return n
+}
+
+# the token right after a marker (" at 2.35MiB/s ETA 00:03" -> "2.35MiB/s")
+gene tf_token_after(t, marker) {
+    let parts = t.split(marker)
+    if len(parts) < 2 {
+        return ""
+    }
+    let rest = parts[1].trim()
+    if rest == "" {
+        return ""
+    }
+    let toks = rest.split(" ")
+    return toks[0]
+}
+
+gene dl_on_exit(ev) {
+    if !has(JOBS, ev.id) {
+        return null
+    }
+    let j = JOBS[ev.id]
+    if j.cancel {
+        j.state = "cancelled"
+        tf_history_update(j.url, "cancelled")
+    } else {
+        if ev.code == 0 {
+            j.state = "done"
+            j.progress = 100.0
+            j.speed = ""
+            j.eta = ""
+            tf_history_update(j.url, "done")
+        } else {
+            j.state = "error"
+            j.error = ev.tail
+            if ev.tail == "" {
+                j.error = "yt-dlp exited with code " + str(ev.code)
+            }
+            tf_history_update(j.url, "error")
+        }
+    }
+    return null
+}
+
+gene ev_cancel(id) {
+    if !has(JOBS, id) {
+        return {ok: false, message: "unknown job"}
+    }
+    let j = JOBS[id]
+    if j.state == "done" or j.state == "error" or j.state == "cancelled" {
+        return {ok: false, message: "job already finished"}
+    }
+    j.cancel = true
+    j.state = "cancelling"
+    return {ok: true}
+}
+
+gene ev_clear_finished() {
+    for pair in items(JOBS) {
+        let j = pair[1]
+        if j.state == "done" or j.state == "error" or j.state == "cancelled" {
+            j.state = "closed"
+        }
+    }
+    return {ok: true}
+}
+
+# ---------------------------------------------------------------- settings
+
+gene ev_set_out(path) {
+    let p = path.trim()
+    if p == "" {
+        return {ok: false, message: "empty path"}
+    }
+    SETTINGS.out_dir = p
+    tf_settings_save()
+    return {ok: true, out_dir: p}
+}
+
+gene ev_set_pref(ev) {
+    if ev.prefer != null { SETTINGS.prefer = ev.prefer }
+    if ev.template != null { SETTINGS.template = ev.template }
+    if ev.mode != null { SETTINGS.mode = ev.mode }
+    if ev.audio_format != null { SETTINGS.audio_format = ev.audio_format }
+    if ev.subs != null { SETTINGS.subs = ev.subs }
+    if ev.embed_subs != null { SETTINGS.embed_subs = ev.embed_subs }
+    if ev.sponsorblock != null { SETTINGS.sponsorblock = ev.sponsorblock }
+    if ev.speed_limit != null { SETTINGS.speed_limit = ev.speed_limit }
+    if ev.playlist != null { SETTINGS.playlist = ev.playlist }
+    if ev.theme != null { SETTINGS.theme = ev.theme }
+    tf_settings_save()
+    return {ok: true, settings: SETTINGS}
+}
+
+gene ev_recheck_tools() {
+    sys_check()
+    return {ok: true, tools: TOOLS}
+}
+
+gene sys_open_path(p) {
+    stress {
+        if env("OS") == "Windows_NT" {
+            let r = run("explorer", [p])
+            return {ok: r.ok}
+        }
+        let r = run("xdg-open", [p])
+        return {ok: r.ok}
+    } rescue (e) {
+        return {ok: false, message: e.message}
+    }
+}
+
+# ---------------------------------------------------------------- history
+
+gene tf_history_add(entry) {
+    push(HISTORY, entry)
+    if len(HISTORY) > 100 {
+        let keep = []
+        let i = len(HISTORY) - 100
+        while i < len(HISTORY) {
+            push(keep, HISTORY[i])
+            i = i + 1
+        }
+        HISTORY = keep
+    }
+    tf_history_save()
+    return true
+}
+
+gene tf_history_update(url, state) {
+    for h in HISTORY {
+        if h.url == url {
+            h.state = state
+        }
+    }
+    tf_history_save()
+    return true
+}
+
+gene tf_history_save() {
+    stress {
+        write_file(BOOT.data_dir + "/history.json", json_str(HISTORY))
+    } rescue (e) {
+        return false
+    }
+    return true
+}
+
+# ---------------------------------------------------------------- UI feed
+
+gene ui_tick() {
+    # re-probe tools at most every 30 s of wall clock
+    if clock() - TOOLS_AT > 30000 {
+        sys_check()
+    }
+    let jobs = []
+    for pair in items(JOBS) {
+        let j = pair[1]
+        if j.state != "closed" {
+            push(jobs, {id: j.id, title: j.title, state: j.state, progress: j.progress, speed: j.speed, eta: j.eta, error: j.error, format: j.format, url: j.url})
+        }
+    }
+    let metas = []
+    for pair in items(METAS) {
+        let m = pair[1]
+        if m.state != "closed" {
+            push(metas, m)
+        }
+    }
+    return {jobs: jobs, metas: metas, tools: TOOLS, settings: SETTINGS, history: HISTORY, now: clock()}
+}
