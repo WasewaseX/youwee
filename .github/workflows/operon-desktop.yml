@@ -10,6 +10,8 @@ on:
     branches: [main]
     paths: ["desktop-operon/**", ".github/workflows/operon-desktop.yml"]
     tags: ["v*"]
+  pull_request:
+    paths: ["desktop-operon/**", ".github/workflows/operon-desktop.yml"]
   workflow_dispatch:
 
 permissions:
