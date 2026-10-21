@@ -360,6 +360,8 @@ pub fn run() {
             commands::check_ffmpeg,
             commands::get_ffmpeg_source_cmd,
             commands::set_ffmpeg_source_cmd,
+            commands::get_ffmpeg_custom_path_cmd,
+            commands::set_ffmpeg_custom_path_cmd,
             commands::check_ffmpeg_update,
             commands::download_ffmpeg,
             commands::get_ffmpeg_path_for_ytdlp,

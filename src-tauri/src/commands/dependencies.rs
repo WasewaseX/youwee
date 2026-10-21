@@ -1,12 +1,13 @@
 use crate::services::{
     check_deno_internal, check_deno_update_internal, check_ffmpeg_internal,
     check_ffmpeg_update_internal, check_gallerydl_internal, get_all_ytdlp_versions,
-    get_channel_api_url, get_deno_download_url, get_ffmpeg_download_info, get_ffmpeg_path,
-    get_ffmpeg_source, get_latest_ffmpeg_release_info, get_ytdlp_channel,
-    get_ytdlp_channel_download_url, get_ytdlp_download_info, get_ytdlp_source,
-    get_ytdlp_version_internal, parse_ffmpeg_version, set_ffmpeg_source, set_ytdlp_channel,
-    set_ytdlp_source, system_ffmpeg_upgrade_message, system_ytdlp_upgrade_message, verify_sha256,
-    write_app_ffmpeg_release_version, DenoUpdateInfo, FfmpegUpdateInfo,
+    get_channel_api_url, get_deno_download_url, get_ffmpeg_custom_path_setting,
+    get_ffmpeg_download_info, get_ffmpeg_path, get_ffmpeg_source, get_latest_ffmpeg_release_info,
+    get_ytdlp_channel, get_ytdlp_channel_download_url, get_ytdlp_download_info, get_ytdlp_source,
+    get_ytdlp_version_internal, parse_ffmpeg_version, set_ffmpeg_custom_path_setting,
+    set_ffmpeg_source, set_ytdlp_channel, set_ytdlp_source, system_ffmpeg_upgrade_message,
+    system_ytdlp_upgrade_message, verify_sha256, write_app_ffmpeg_release_version, DenoUpdateInfo,
+    FfmpegUpdateInfo,
 };
 use crate::types::{
     BackendError, DenoStatus, DependencySource, FfmpegStatus, GalleryDlStatus, YtdlpAllVersions,
@@ -517,6 +518,16 @@ pub async fn get_ffmpeg_source_cmd(app: AppHandle) -> Result<String, String> {
 pub async fn set_ffmpeg_source_cmd(app: AppHandle, source: String) -> Result<(), String> {
     let source_enum = DependencySource::from_str(&source);
     set_ffmpeg_source(&app, &source_enum).await
+}
+
+#[tauri::command]
+pub async fn get_ffmpeg_custom_path_cmd(app: AppHandle) -> Result<Option<String>, String> {
+    Ok(get_ffmpeg_custom_path_setting(&app).await)
+}
+
+#[tauri::command]
+pub async fn set_ffmpeg_custom_path_cmd(app: AppHandle, path: String) -> Result<(), String> {
+    set_ffmpeg_custom_path_setting(&app, &path).await
 }
 
 #[tauri::command]

@@ -8,6 +8,8 @@ pub enum DependencySource {
     Auto,
     App,
     System,
+    /// User-provided binary path (currently supported for FFmpeg only).
+    Custom,
 }
 
 impl DependencySource {
@@ -16,6 +18,7 @@ impl DependencySource {
             DependencySource::Auto => "auto",
             DependencySource::App => "app",
             DependencySource::System => "system",
+            DependencySource::Custom => "custom",
         }
     }
 
@@ -23,6 +26,7 @@ impl DependencySource {
         match s.to_lowercase().as_str() {
             "app" => DependencySource::App,
             "system" => DependencySource::System,
+            "custom" => DependencySource::Custom,
             _ => DependencySource::Auto,
         }
     }

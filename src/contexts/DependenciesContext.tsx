@@ -85,6 +85,7 @@ interface DependenciesContextType {
 
   // FFmpeg state
   ffmpegSource: DependencySource;
+  ffmpegCustomPath: string | null;
   ffmpegStatus: FfmpegStatus | null;
   ffmpegLoading: boolean;
   ffmpegDownloading: boolean;
@@ -111,6 +112,7 @@ interface DependenciesContextType {
 
   // FFmpeg actions
   setFfmpegSource: (source: DependencySource) => Promise<void>;
+  setFfmpegCustomPath: (path: string) => Promise<void>;
   checkFfmpeg: () => Promise<void>;
   checkFfmpegUpdate: () => Promise<void>;
   downloadFfmpeg: () => Promise<void>;
@@ -165,6 +167,7 @@ export function DependenciesProvider({ children }: { children: ReactNode }) {
 
   // FFmpeg state
   const [ffmpegSource, setFfmpegSourceState] = useState<DependencySource>('auto');
+  const [ffmpegCustomPath, setFfmpegCustomPathState] = useState<string | null>(null);
   const [ffmpegStatus, setFfmpegStatus] = useState<FfmpegStatus | null>(null);
   const [ffmpegLoading, setFfmpegLoading] = useState(true);
   const [ffmpegDownloading, setFfmpegDownloading] = useState(false);
@@ -348,6 +351,20 @@ export function DependenciesProvider({ children }: { children: ReactNode }) {
     [checkFfmpeg],
   );
 
+  const setFfmpegCustomPath = useCallback(
+    async (path: string) => {
+      setFfmpegError(null);
+      try {
+        await invoke('set_ffmpeg_custom_path_cmd', { path });
+        setFfmpegCustomPathState(path.trim() === '' ? null : path);
+        await checkFfmpeg();
+      } catch (err) {
+        setFfmpegError(err instanceof Error ? err.message : String(err));
+      }
+    },
+    [checkFfmpeg],
+  );
+
   // Check FFmpeg update
   const checkFfmpegUpdate = useCallback(async () => {
     setFfmpegCheckingUpdate(true);
@@ -478,9 +495,11 @@ export function DependenciesProvider({ children }: { children: ReactNode }) {
       Promise.all([
         invoke<DependencySource>('get_ytdlp_source_cmd').catch(() => 'auto' as DependencySource),
         invoke<DependencySource>('get_ffmpeg_source_cmd').catch(() => 'auto' as DependencySource),
-      ]).then(async ([ySource, fSource]) => {
+        invoke<string | null>('get_ffmpeg_custom_path_cmd').catch(() => null),
+      ]).then(async ([ySource, fSource, fCustomPath]) => {
         setYtdlpSourceState(ySource);
         setFfmpegSourceState(fSource);
+        setFfmpegCustomPathState(fCustomPath);
 
         await Promise.all([refreshYtdlpVersion(), checkFfmpeg()]);
         if (fSource !== 'system') {
@@ -674,7 +693,9 @@ export function DependenciesProvider({ children }: { children: ReactNode }) {
         ffmpegUpdateInfo,
         ffmpegCheckingUpdate,
         ffmpegDownloadProgress,
+        ffmpegCustomPath,
         setFfmpegSource,
+        setFfmpegCustomPath,
         checkFfmpeg,
         checkFfmpegUpdate,
         downloadFfmpeg,

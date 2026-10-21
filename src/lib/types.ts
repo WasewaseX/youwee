@@ -1299,7 +1299,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
 // yt-dlp Channel Types
 // ============================================
 
-export type DependencySource = 'auto' | 'app' | 'system';
+export type DependencySource = 'auto' | 'app' | 'system' | 'custom';
 
 export type YtdlpChannel = 'bundled' | 'stable' | 'nightly';
 
