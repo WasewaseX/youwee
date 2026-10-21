@@ -482,6 +482,14 @@ pub fn parse_ytdlp_error(stderr: &str) -> Option<BackendError> {
         );
     }
 
+    // Age-restricted content: without account cookies YouTube only serves
+    // low-resolution muxed formats (usually 360p) or refuses playback entirely.
+    if is_age_restricted_error(stderr) {
+        return Some(BackendError::from_message(
+            "Age-restricted video detected. Without account cookies YouTube only serves low resolution (about 360p) or refuses the download. Enable cookies in Settings → Network (Cookie Mode) to unlock higher resolutions.",
+        ));
+    }
+
     // Browser cookie database locked / unavailable
     if stderr_lower.contains("could not copy")
         && stderr_lower.contains("cookie")
@@ -625,6 +633,22 @@ pub fn is_upcoming_live_error(stderr: &str) -> bool {
     normalized.contains("this live event will begin")
         || normalized.contains("premieres in")
         || normalized.contains("premiere will begin")
+}
+
+/// Detect age-restriction complaints from yt-dlp / YouTube stderr.
+///
+/// Age-restricted videos either fail outright with a sign-in requirement, or
+/// silently fall back to low resolution (360p) muxed formats when no account
+/// cookies are available. Surfacing this lets users enable cookie mode instead
+/// of wondering why "best" quality came back as 360p.
+pub fn is_age_restricted_error(stderr: &str) -> bool {
+    let normalized = stderr.to_lowercase();
+    normalized.contains("sign in to confirm your age")
+        || normalized.contains("confirm your age")
+        || normalized.contains("age-restricted")
+        || normalized.contains("age restricted")
+        || normalized.contains("inappropriate for some users")
+        || normalized.contains("age-restriction")
 }
 
 /// Helper to run yt-dlp command and get JSON output
@@ -1261,6 +1285,36 @@ mod tests {
         assert!(is_upcoming_live_error(
             "ERROR: [youtube] abc: The premiere will begin shortly."
         ));
+    }
+
+    #[test]
+    fn is_age_restricted_error_detects_age_gate_messages() {
+        assert!(is_age_restricted_error(
+            "ERROR: [youtube] abc: Sign in to confirm your age. This video may be inappropriate for some users."
+        ));
+        assert!(is_age_restricted_error(
+            "WARNING: [youtube] abc: This video is age-restricted and only low resolution formats are available without cookies."
+        ));
+        assert!(is_age_restricted_error(
+            "ERROR: [youtube] abc: This video is age restricted."
+        ));
+        assert!(!is_age_restricted_error(
+            "ERROR: [youtube] abc: Video unavailable."
+        ));
+    }
+
+    #[test]
+    fn parse_ytdlp_error_guides_to_cookies_for_age_restriction() {
+        let error = parse_ytdlp_error(
+            "ERROR: [youtube] abc: Sign in to confirm your age. This video may be inappropriate for some users.",
+        )
+        .expect("age-restricted error should be parsed");
+
+        assert!(error.message().to_lowercase().contains("cookie"));
+        assert!(error
+            .message()
+            .to_lowercase()
+            .contains("age-restricted video detected"));
     }
 
     #[test]
