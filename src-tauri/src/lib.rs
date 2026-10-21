@@ -302,7 +302,7 @@ pub fn run() {
             }
 
             if has_initial_links || !has_cli_request {
-                show_main_window(&app.handle());
+                show_main_window(app.handle());
             }
 
             if cfg!(debug_assertions) {
@@ -611,7 +611,7 @@ fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     tray_builder.build(app)?;
 
     // Populate tray menu with channel info
-    rebuild_tray_menu(&app.handle());
+    rebuild_tray_menu(app.handle());
 
     Ok(())
 }

@@ -1,0 +1,629 @@
+name: Extreme Quality Gates
+
+# =============================================================================
+# 89-gate tiered quality system for the WasewaseX fork of vanloctech/youwee.
+# Blocking gates (advisory: false) must pass; advisory gates report only.
+# Every gate is documented in CONTRIBUTING.md and pinned by
+# .integrity/manifest.json. See scripts/gates/*.mjs for implementation.
+# =============================================================================
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: extreme-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # ===========================================================================
+  # Tier A: gate matrix part 1 - foundation, AI-slop, security, integrity
+  # ===========================================================================
+  gate:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    continue-on-error: ${{ matrix.advisory == true }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Foundation & build
+          - { name: "g01 install-clean",        run: "bun install --frozen-lockfile" }
+          - { name: "g02 lockfile-untouched",   run: "bun install --frozen-lockfile && git diff --exit-code bun.lock" }
+          - { name: "g03 typecheck",            run: "bunx tsc -b" }
+          - { name: "g04 biome-check",          run: "bun run lint" }
+          - { name: "g05 biome-format",         run: "bunx biome format ." }
+          - { name: "g06 unit-tests",           run: "bun run build:sdk && bun test" }
+          - { name: "g07 frontend-build",       run: "bun run build" }
+          - { name: "g08 plugin-store-validate", run: "bun run plugin-store:validate" }
+          - { name: "g09 extension-build",      run: "bun run ext:build" }
+          - { name: "g10 sdk-build",            run: "bun run build:sdk" }
+          # AI-slop & humanized-code enforcement (EXTREME)
+          - { name: "g11 ai-slop-detector",     run: "bun scripts/gates/ai-slop.mjs" }
+          - { name: "g12 humanized-code-check", run: "bun scripts/gates/humanized-code.mjs" }
+          - { name: "g13 emoji-in-code-ban",    run: "bun scripts/gates/emoji-ban.mjs" }
+          - { name: "g14 placeholder-ban",      run: "node -e \"const{execSync}=require('node:child_process');const{readFileSync}=require('node:fs');const files=execSync('git ls-files src sdk-js').toString().split('\\n').filter(f=>/\\.(ts|tsx)$/.test(f));let bad=0;for(const f of files){const lines=readFileSync(f,'utf8').split('\\n');lines.forEach((l,i)=>{if(/lorem ipsum|your code here|implementation goes here|as an AI/i.test(l)){console.error(f+':'+(i+1)+' AI placeholder');bad++}})};if(bad>0)process.exit(1);console.log('clean')\"" }
+          # Bug patterns
+          - { name: "g15 bug-patterns",         run: "bun scripts/gates/bug-patterns.mjs" }
+          - { name: "g16 debugger-ban",         run: "! git grep -n -E '\\bdebugger\\b' -- 'src/**/*.ts' 'src/**/*.tsx' 'sdk-js/**/*.ts' 'extensions/**/*.js'" }
+          - { name: "g17 merge-conflict-markers", run: "! git grep -n -E '^(<<<<<<<|=======|>>>>>>>)' -- . ':(exclude)bun.lock'" }
+          - { name: "g18 unsafe-regex-scan",    run: "node -e \"const{execSync}=require('node:child_process');const{readFileSync}=require('node:fs');const files=execSync('git ls-files src sdk-js extensions').toString().split('\\n').filter(f=>/\\.(ts|tsx|js|mjs)$/.test(f));let bad=0;const re=/\\(\\[[^\\]]+\\]\\+\\)\\+|\\(\\.\\*\\)\\*\\)/;for(const f of files){const lines=readFileSync(f,'utf8').split('\\n');lines.forEach((l,i)=>{if(re.test(l)){console.error(f+':'+(i+1)+' possible catastrophic backtracking');bad++}})};if(bad>0)process.exit(1);console.log('clean')\"" }
+          - { name: "g19 todo-quota-advisory",  run: "node -e \"const{execSync}=require('node:child_process');const{readFileSync}=require('node:fs');const files=execSync('git ls-files src sdk-js src-tauri/src').toString().split('\\n').filter(Boolean);let n=0;for(const f of files){try{const c=readFileSync(f,'utf8');const m=c.match(/\\b(TODO|FIXME)\\b/g);if(m)n+=m.length}catch{}};console.log('TODO/FIXME total: '+n+' (advisory ratchet)');if(n>150)process.exit(1)\"" , advisory: true }
+          # Security
+          - { name: "g20 secret-pattern-scan",  run: "bun scripts/gates/secret-patterns.mjs" }
+          - { name: "g21 xss-sink-scan",        run: "bun scripts/gates/xss-patterns.mjs" }
+          - { name: "g22 blank-target-safety",  run: "bun scripts/gates/blank-target-safety.mjs" }
+          - { name: "g23 insecure-url-advisory", run: "bun scripts/gates/insecure-url.mjs", advisory: true }
+          - { name: "g24 hardcoded-paths-advisory", run: "! git grep -n -E '/home/[a-z]+/|C:\\\\\\\\Users\\\\\\\\' -- src sdk-js extensions", advisory: true }
+          # Author & integrity (WasewaseX identity + tamper-evidence)
+          - { name: "g25 author-gate-wasewasex", run: "bun scripts/gates/author-gate.mjs", depth: 0 }
+          - { name: "g26 commit-hygiene",       run: "bun scripts/gates/commit-gates.mjs", depth: 0 }
+          - { name: "g27 commit-body-width-advisory", run: "bun scripts/gates/commit-body-width.mjs", advisory: true }
+          - { name: "g28 commit-signature-advisory", run: "git log --format='%h %G?' origin/${GITHUB_BASE_REF:-main}..HEAD 2>/dev/null | awk '$2!~/^G/{print;bad++} END{if(bad>0){print bad\" unsigned commit(s) (advisory)\"}else print \"all signed\"}'", advisory: true }
+          - { name: "g29 integrity-manifest",   run: "bun scripts/gates/integrity-gate.mjs" }
+          - { name: "g30 protected-paths",      run: "bun scripts/gates/protected-paths.mjs", depth: 0 }
+          - { name: "g31 workflow-action-pinning", run: "bun scripts/gates/workflow-pinning.mjs" }
+          # Docs & consistency
+          - { name: "g32 contributing-coverage", run: "bun scripts/gates/docs-gate.mjs" }
+          - { name: "g33 i18n-parity",          run: "bun scripts/gates/i18n-parity.mjs" }
+          - { name: "g34 unused-i18n-advisory", run: "bun scripts/gates/unused-i18n.mjs", advisory: true }
+          - { name: "g35 release-consistency",  run: "bun scripts/gates/release-consistency.mjs" }
+          - { name: "g36 repo-hygiene",         run: "bun scripts/gates/repo-hygiene.mjs" }
+          - { name: "g37 file-attributes",      run: "bun scripts/gates/file-attrs.mjs" }
+          - { name: "g38 file-naming",          run: "bun scripts/gates/file-naming.mjs" }
+          - { name: "g39 agents-md-present",   run: "test -s AGENTS.md && echo 'AGENTS.md present'" }
+          - { name: "g40 license-present",      run: "test -s LICENSE && grep -qi 'MIT' LICENSE && echo 'MIT license present'" }
+          - { name: "g41 gitattributes-present", run: "test -s .gitattributes && grep -q 'eol=lf' .gitattributes && echo 'gitattributes enforced'" }
+          - { name: "g42 gitignore-coverage",   run: "bun scripts/gates/gitignore-check.mjs" }
+          - { name: "g43 package-scripts",      run: "bun scripts/gates/package-scripts-check.mjs" }
+          - { name: "g44 changelog-advisory",   run: "bun scripts/gates/changelog-check.mjs", advisory: true }
+          - { name: "g45 file-size-limit",      run: "bun scripts/gates/file-size.mjs" }
+          # Config integrity
+          - { name: "g46 tauri-config-capabilities", run: "bun scripts/gates/tauri-config-check.mjs" }
+          - { name: "g47 extension-manifest",   run: "bun scripts/gates/extension-manifest.mjs" }
+          - { name: "g48 dependency-budget-lockfile", run: "bun scripts/gates/dependency-budget.mjs" }
+          - { name: "g49 tsconfig-strictness",  run: "bun scripts/gates/tsconfig-strict.mjs" }
+          - { name: "g50 doc-relative-links",   run: "bun scripts/gates/readme-links.mjs" }
+          # Syntax sweeps
+          - { name: "g51 json-valid",           run: "node -e \"const{execSync}=require('node:child_process');const{readFileSync}=require('node:fs');const files=execSync('git ls-files').toString().split('\\n').filter(f=>f.endsWith('.json')&&!f.includes('node_modules')&&!f.startsWith('tsconfig'));let bad=0;for(const f of files){try{JSON.parse(readFileSync(f,'utf8'))}catch(e){console.error(f+': '+e.message);bad++}};if(bad>0)process.exit(1);console.log(files.length+' JSON files valid (tsconfig* are JSONC, validated by g03)')\"" }
+          - { name: "g52 yaml-valid-advisory",  run: "python3 -c \"import yaml,subprocess;files=[f for f in subprocess.check_output(['git','ls-files']).decode().split() if f.endswith(('.yml','.yaml'))];[yaml.safe_load(open(f)) for f in files];print(str(len(files))+' YAML files valid')\"" , advisory: true }
+          - { name: "g53 markdown-lint-advisory", run: "bunx markdownlint-cli2 '**/*.md' '#node_modules'" , advisory: true }
+          - { name: "g54 editorconfig-advisory", run: "bunx editorconfig-checker -exclude-default-ignores" , advisory: true }
+          - { name: "g55 import-hygiene-advisory", run: "bun scripts/gates/import-hygiene.mjs" , advisory: true }
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Cache bun dependencies
+        if: ${{ matrix.noInstall != true }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+      - name: Install dependencies
+        if: ${{ matrix.noInstall != true && matrix.run != 'bun install --frozen-lockfile' }}
+        run: bun install --frozen-lockfile
+      - name: Run gate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: |
+          echo "### Gate: ${{ matrix.name }}" >> "$GITHUB_STEP_SUMMARY"
+          ${{ matrix.run }}
+
+  # ===========================================================================
+  # Tier A2: gate matrix part 2 - code-quality heuristics (Phase 2)
+  # ===========================================================================
+  gate2:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    continue-on-error: ${{ matrix.advisory == true }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: "g56 line-length-advisory",     run: "bun scripts/gates/line-length.mjs", advisory: true }
+          - { name: "g57 function-length-advisory", run: "bun scripts/gates/function-length.mjs", advisory: true }
+          - { name: "g58 nesting-depth-advisory",   run: "bun scripts/gates/nesting-depth.mjs", advisory: true }
+          - { name: "g59 magic-numbers-advisory",   run: "bun scripts/gates/magic-numbers.mjs", advisory: true }
+          - { name: "g60 ts-escape-hatch-audit",    run: "bun scripts/gates/ts-any-audit.mjs", advisory: true }
+          - { name: "g61 duplication-advisory",     run: "bun scripts/gates/duplication-check.mjs", advisory: true }
+          - { name: "g62 react-a11y-advisory",      run: "bun scripts/gates/react-a11y.mjs", advisory: true }
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - name: Cache bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Run gate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: ${{ matrix.run }}
+
+  # ===========================================================================
+  # Tier C: security & code-intelligence tools
+  # ===========================================================================
+  gitleaks:
+    name: "g63 gitleaks-secret-scan"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  trivy-vulns:
+    name: "g64 trivy-dependency-vulns"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Install trivy
+        run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+      - name: Scan dependencies for vulnerabilities
+        run: trivy fs --scanners vuln --severity CRITICAL,HIGH --ignore-unfixed --exit-code 1 .
+
+  trivy-secret:
+    name: "g65 trivy-secret-scan"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Install trivy
+        run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+      - name: Scan for embedded secrets
+        run: trivy fs --scanners secret --exit-code 1 .
+
+  trivy-license:
+    name: "g66 trivy-license-advisory"
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Install trivy
+        run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+      - name: Scan dependency licenses
+        run: trivy fs --scanners license --exit-code 1 .
+
+  trivy-misconfig:
+    name: "g67 trivy-misconfig-advisory"
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Install trivy
+        run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+      - name: Scan for misconfigurations
+        run: trivy fs --scanners misconfig --severity CRITICAL,HIGH,MEDIUM --exit-code 1 .
+
+  actionlint:
+    name: "g68 actionlint-workflows-advisory"
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Download actionlint
+        run: curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash | bash -s --
+      - name: Lint GitHub Actions workflows
+        run: ./actionlint -color
+
+  osv-scanner:
+    name: "g69 osv-scanner-advisory"
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Install osv-scanner
+        run: |
+          curl -sSfL -o /tmp/osv.deb https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64.deb || true
+          sudo dpkg -i /tmp/osv.deb || true
+      - name: Scan for known vulnerabilities
+        run: |
+          if command -v osv-scanner >/dev/null; then osv-scanner scan --lockfile=bun.lock || exit 0; else echo "osv-scanner unavailable (skip)"; fi
+
+  knip:
+    name: "g70 knip-unused-exports-advisory"
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Detect unused exports/files/deps
+        run: bunx knip --no-progress --reporter compact || true
+
+  madge:
+    name: "g71 madge-circular-imports"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Detect circular dependencies
+        run: bunx madge --circular --extensions ts,tsx src || exit 1
+
+  depcheck:
+    name: "g72 depcheck-unused-deps-advisory"
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Detect unused dependencies
+        run: bunx depcheck --ignores="@biomejs/biome,types-bun,lint-staged,husky" || true
+
+  shellcheck:
+    name: "g73 shellcheck-scripts"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Lint shell scripts
+        run: |
+          mapfile -t scripts < <(git ls-files '*.sh')
+          if [ ${#scripts[@]} -eq 0 ]; then echo "no shell scripts"; exit 0; fi
+          shellcheck "${scripts[@]}"
+
+  bundle-size:
+    name: "g74 bundle-size-advisory"
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Build and measure bundle
+        run: |
+          bun run build
+          SIZE=$(du -sk dist | cut -f1)
+          echo "dist size: $SIZE KB" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$SIZE" -gt 20000 ]; then echo "bundle exceeds 20MB budget"; exit 1; fi
+
+  precommit-hook:
+    name: "g75 precommit-hook-present"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Verify pre-commit hook exists and parses
+        run: |
+          test -s scripts/pre-commit
+          bash -n scripts/pre-commit && echo "pre-commit hook OK"
+
+  # ===========================================================================
+  # Tier D: Rust / Tauri backend
+  # ===========================================================================
+  cargo-check:
+    name: "g76 cargo-check"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - name: Install Linux dependencies
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev libayatana-appindicator3-dev
+      - name: Build SDK (embedded via include_str!)
+        run: bun install --frozen-lockfile && bun run build:sdk
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+      - name: Create placeholder yt-dlp binary
+        run: mkdir -p src-tauri/bin && touch src-tauri/bin/youwee-yt-dlp-x86_64-unknown-linux-gnu && chmod +x src-tauri/bin/youwee-yt-dlp-x86_64-unknown-linux-gnu
+      - name: cargo check
+        run: cargo check --manifest-path src-tauri/Cargo.toml --all-targets
+
+  cargo-test:
+    name: "g77 cargo-test"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - name: Install Linux dependencies
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev libayatana-appindicator3-dev
+      - name: Build SDK (embedded via include_str!)
+        run: bun install --frozen-lockfile && bun run build:sdk
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+      - name: Create placeholder yt-dlp binary
+        run: mkdir -p src-tauri/bin && touch src-tauri/bin/youwee-yt-dlp-x86_64-unknown-linux-gnu && chmod +x src-tauri/bin/youwee-yt-dlp-x86_64-unknown-linux-gnu
+      - name: cargo test
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+
+  cargo-fmt:
+    name: "g78 cargo-fmt"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: cargo fmt --check
+        run: cargo fmt --manifest-path src-tauri/Cargo.toml --all -- --check
+
+  cargo-clippy:
+    name: "g79 cargo-clippy"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - name: Install Linux dependencies
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev libayatana-appindicator3-dev
+      - name: Build SDK (embedded via include_str!)
+        run: bun install --frozen-lockfile && bun run build:sdk
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+      - name: Create placeholder yt-dlp binary
+        run: mkdir -p src-tauri/bin && touch src-tauri/bin/youwee-yt-dlp-x86_64-unknown-linux-gnu && chmod +x src-tauri/bin/youwee-yt-dlp-x86_64-unknown-linux-gnu
+      - name: cargo clippy (JSON capture)
+        run: |-
+          # Clippy runs at warn level and is captured as JSON. The clippy-diff
+          # gate BLOCKS on any warning in files changed by the PR (zero new
+          # debt) and reports legacy upstream warnings as non-blocking counts.
+          cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets \
+            --message-format=json > target/clippy-output.json || true
+          grep -c '"reason":"compiler-message"' target/clippy-output.json || true
+      - name: clippy-diff gate (block on changed files)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: bun scripts/gates/clippy-diff.mjs
+
+  cargo-clippy-pedantic:
+    name: "g80 cargo-clippy-pedantic-advisory"
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - name: Install Linux dependencies
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev libayatana-appindicator3-dev
+      - name: Build SDK (embedded via include_str!)
+        run: bun install --frozen-lockfile && bun run build:sdk
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+      - name: Create placeholder yt-dlp binary
+        run: mkdir -p src-tauri/bin && touch src-tauri/bin/youwee-yt-dlp-x86_64-unknown-linux-gnu && chmod +x src-tauri/bin/youwee-yt-dlp-x86_64-unknown-linux-gnu
+      - name: cargo clippy pedantic
+        run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -W clippy::pedantic || true
+
+  cargo-audit:
+    name: "g81 cargo-audit-advisory"
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Expose Cargo.lock for audit
+        run: cp src-tauri/Cargo.lock Cargo.lock
+      - name: Audit Rust dependencies
+        uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  cargo-deny:
+    name: "g82 cargo-deny-advisory"
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Check Rust licenses/advisories/bans
+        uses: EmbarkStudios/cargo-deny-action@v2
+
+  cargo-doc:
+    name: "g83 cargo-doc-advisory"
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - name: Install Linux dependencies
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev libayatana-appindicator3-dev
+      - name: Build SDK (embedded via include_str!)
+        run: bun install --frozen-lockfile && bun run build:sdk
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+      - name: Create placeholder yt-dlp binary
+        run: mkdir -p src-tauri/bin && touch src-tauri/bin/youwee-yt-dlp-x86_64-unknown-linux-gnu && chmod +x src-tauri/bin/youwee-yt-dlp-x86_64-unknown-linux-gnu
+      - name: cargo doc
+        run: cargo doc --manifest-path src-tauri/Cargo.toml --no-deps
+
+  # ===========================================================================
+  # Tier E: pull-request gates
+  # ===========================================================================
+  pr-gates:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request'
+    continue-on-error: ${{ matrix.advisory == true }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: "g84 pr-title-and-body", run: "bun scripts/gates/pr-gates.mjs" }
+          - { name: "g85 type-safety-diff",  run: "bun scripts/gates/type-safety-diff.mjs" }
+          - { name: "g86 branch-name-advisory", run: "node -e \"const b=process.env.GITHUB_HEAD_REF;const ok=/^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)\\/[\\w.-]+$/.test(b);console.log('branch: '+b);if(!ok){console.warn('branch name should be type/scope');process.exit(0)}\"", advisory: true }
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Run PR gate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: ${{ matrix.run }}
+
+  dependency-review:
+    name: "g87 dependency-review-advisory"
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request'
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Review dependencies
+        uses: actions/dependency-review@v4
+        with:
+          fail-on-severity: critical
+
+  # ===========================================================================
+  # Final aggregators
+  # ===========================================================================
+  gatekeeper:
+    name: "g88 GATEKEEPER (all blocking gates)"
+    runs-on: ubuntu-24.04
+    needs:
+      - gate
+      - gate2
+      - gitleaks
+      - trivy-vulns
+      - trivy-secret
+      - precommit-hook
+      - cargo-check
+      - cargo-test
+      - cargo-fmt
+      - cargo-clippy
+      - pr-gates
+    if: always()
+    steps:
+      - name: Evaluate gate results
+        run: |
+          echo "## Extreme Quality Gates - result" >> "$GITHUB_STEP_SUMMARY"
+          echo "| tier | job | result |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| A | gate matrix (55 legs) | ${{ needs.gate.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| A2 | gate2 quality heuristics | ${{ needs.gate2.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| C | gitleaks | ${{ needs.gitleaks.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| C | trivy-vulns | ${{ needs.trivy-vulns.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| C | trivy-secret | ${{ needs.trivy-secret.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| C | precommit-hook | ${{ needs.precommit-hook.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| D | cargo-check | ${{ needs.cargo-check.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| D | cargo-test | ${{ needs.cargo-test.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| D | cargo-fmt | ${{ needs.cargo-fmt.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| D | cargo-clippy | ${{ needs.cargo-clippy.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| E | pr-gates | ${{ needs.pr-gates.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ contains(needs.*.result, 'failure') }}" = "true" ]; then
+            echo "BLOCKING FAILURE: at least one gate failed" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "ALL BLOCKING GATES PASSED" >> "$GITHUB_STEP_SUMMARY"
+
+  advisory-report:
+    name: "g89 advisory-findings-report"
+    runs-on: ubuntu-24.04
+    needs:
+      - gate
+      - gate2
+      - trivy-license
+      - trivy-misconfig
+      - osv-scanner
+      - knip
+      - depcheck
+      - bundle-size
+      - cargo-clippy-pedantic
+      - cargo-deny
+      - cargo-doc
+      - cargo-audit
+      - dependency-review
+    if: always()
+    steps:
+      - name: Summarize advisory findings
+        run: |
+          echo "## Advisory findings (non-blocking)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Advisory gates report style/size/hygiene findings as warnings." >> "$GITHUB_STEP_SUMMARY"
+          echo "Keep the counts falling - the ratchet only gets stricter over time." >> "$GITHUB_STEP_SUMMARY"

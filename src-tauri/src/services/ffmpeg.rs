@@ -7,6 +7,7 @@ use tokio::process::Command;
 
 const SOURCE_CONFIG_FILE: &str = "ffmpeg-source.txt";
 const RELEASE_VERSION_FILE: &str = "ffmpeg-release-version.txt";
+const CUSTOM_PATH_FILE: &str = "ffmpeg-custom-path.txt";
 
 pub fn system_ffmpeg_upgrade_message() -> String {
     #[cfg(target_os = "macos")]
@@ -98,6 +99,68 @@ pub async fn set_ffmpeg_source(app: &AppHandle, source: &DependencySource) -> Re
     Ok(())
 }
 
+fn get_ffmpeg_custom_path_config_path(app: &AppHandle) -> Option<PathBuf> {
+    app.path()
+        .app_data_dir()
+        .ok()
+        .map(|p| p.join("bin").join(CUSTOM_PATH_FILE))
+}
+
+/// Read the user-provided custom FFmpeg binary path (empty string clears it).
+pub async fn get_ffmpeg_custom_path_setting(app: &AppHandle) -> Option<String> {
+    let config_path = get_ffmpeg_custom_path_config_path(app)?;
+    let content = tokio::fs::read_to_string(&config_path).await.ok()?;
+    let trimmed = content.trim();
+    if trimmed.is_empty() {
+        None
+    } else {
+        Some(trimmed.to_string())
+    }
+}
+
+/// Persist the user-provided custom FFmpeg binary path.
+/// An empty string removes the stored path.
+pub async fn set_ffmpeg_custom_path_setting(app: &AppHandle, path: &str) -> Result<(), String> {
+    let config_path = get_ffmpeg_custom_path_config_path(app).ok_or("Failed to get config path")?;
+
+    if let Some(parent) = config_path.parent() {
+        tokio::fs::create_dir_all(parent)
+            .await
+            .map_err(|e| format!("Failed to create bin directory: {}", e))?;
+    }
+
+    tokio::fs::write(&config_path, path.trim())
+        .await
+        .map_err(|e| format!("Failed to save custom FFmpeg path: {}", e))?;
+
+    Ok(())
+}
+
+/// Resolve the FFmpeg binary from a user-provided custom path.
+///
+/// Accepts either a direct path to the `ffmpeg` binary or a directory that
+/// contains it. Returns `None` when the configured path is missing or the
+/// binary does not exist on disk.
+fn resolve_custom_binary(configured: Option<String>) -> Option<PathBuf> {
+    let configured = configured?;
+    let candidate = PathBuf::from(&configured);
+    let binary = if candidate.is_dir() {
+        #[cfg(windows)]
+        let binary = candidate.join("ffmpeg.exe");
+        #[cfg(not(windows))]
+        let binary = candidate.join("ffmpeg");
+        binary
+    } else {
+        candidate
+    };
+
+    if binary.exists() {
+        Some(binary)
+    } else {
+        None
+    }
+}
+
 fn get_app_ffmpeg_path(app: &AppHandle) -> Option<PathBuf> {
     let app_data_dir = app.path().app_data_dir().ok()?;
     let bin_dir = app_data_dir.join("bin");
@@ -127,6 +190,10 @@ pub async fn get_ffmpeg_path(app: &AppHandle) -> Option<PathBuf> {
     match get_ffmpeg_source(app).await {
         DependencySource::System => get_system_ffmpeg_path(),
         DependencySource::App => get_app_ffmpeg_path(app),
+        DependencySource::Custom => {
+            let configured = get_ffmpeg_custom_path_setting(app).await;
+            resolve_custom_binary(configured).or_else(get_system_ffmpeg_path)
+        }
         DependencySource::Auto => get_app_ffmpeg_path(app).or_else(get_system_ffmpeg_path),
     }
 }
@@ -424,7 +491,9 @@ pub async fn check_ffmpeg_update_internal(app: &AppHandle) -> Result<FfmpegUpdat
 
 #[cfg(test)]
 mod tests {
-    use super::{ffmpeg_version_has_update, normalize_ffmpeg_release_version};
+    use super::{
+        ffmpeg_version_has_update, normalize_ffmpeg_release_version, resolve_custom_binary,
+    };
 
     #[test]
     fn normalizes_ffmpeg_macos_release_tags() {
@@ -445,5 +514,45 @@ mod tests {
             "2026.06.11"
         ));
         assert!(!ffmpeg_version_has_update("2026.06.11", "2026.06.11"));
+    }
+
+    #[test]
+    fn resolve_custom_binary_returns_none_without_setting() {
+        assert!(resolve_custom_binary(None).is_none());
+        assert!(resolve_custom_binary(Some(String::new())).is_none());
+    }
+
+    #[test]
+    fn resolve_custom_binary_rejects_missing_paths() {
+        assert!(
+            resolve_custom_binary(Some("/nonexistent/youwee-test/ffmpeg".to_string())).is_none()
+        );
+    }
+
+    #[test]
+    fn resolve_custom_binary_accepts_direct_binary_path() {
+        let probe = std::env::temp_dir().join(format!(
+            "youwee-ffmpeg-resolve-probe-{}",
+            std::process::id()
+        ));
+        std::fs::write(&probe, b"").expect("write probe file");
+        let path = resolve_custom_binary(Some(probe.to_string_lossy().to_string()));
+        assert!(path.is_some());
+        std::fs::remove_file(&probe).ok();
+    }
+
+    #[test]
+    fn resolve_custom_binary_accepts_directory_containing_binary() {
+        let dir =
+            std::env::temp_dir().join(format!("youwee-ffmpeg-dir-test-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).expect("create probe dir");
+        #[cfg(windows)]
+        let bin = dir.join("ffmpeg.exe");
+        #[cfg(not(windows))]
+        let bin = dir.join("ffmpeg");
+        std::fs::write(&bin, b"").expect("write probe binary");
+        let resolved = resolve_custom_binary(Some(dir.to_string_lossy().to_string()));
+        assert_eq!(resolved, Some(bin));
+        std::fs::remove_dir_all(&dir).ok();
     }
 }

@@ -1,0 +1,230 @@
+{
+  "aiSlop.slop": {
+    "perFile": {
+      "src-tauri/src/lib.rs": 1
+    }
+  },
+  "aiSlop.commentRatio": {
+    "perFile": {
+      "src-tauri/src/types/plugin.rs": 8,
+      "src-tauri/src/utils/command.rs": 4
+    }
+  },
+  "humanized.filler": {
+    "perFile": {
+      "src-tauri/src/commands/metadata.rs": 1,
+      "src-tauri/src/services/ai/providers.rs": 1,
+      "src-tauri/src/services/deno.rs": 1,
+      "src/components/subtitles/SubtitleWaveformTimeline.tsx": 1
+    }
+  },
+  "bug.emptyCatch": {
+    "perFile": {
+      "sdk-js/src/ai.ts": 1
+    }
+  },
+  "bug.swallowCatch": {
+    "perFile": {
+      "extensions/youwee-webext/src/popup.js": 2,
+      "src/App.tsx": 2,
+      "src/components/layout/MainLayout.tsx": 2,
+      "src/components/settings/sections/GeneralSection.tsx": 2,
+      "src/contexts/PlayerContext.tsx": 1,
+      "src/contexts/channels/useChannelsController.ts": 7,
+      "src/hooks/useExternalDownloadLinks.ts": 1,
+      "src/hooks/useSchedule.ts": 1,
+      "src/hooks/useTrayDownloadStatus.ts": 1
+    }
+  },
+  "bug.eval": {
+    "perFile": {
+      "sdk-js/src/runtime-cli.ts": 1
+    }
+  },
+  "bug.consoleLog": {
+    "perFile": {
+      "sdk-js/src/cli.ts": 13,
+      "src/contexts/AIContext.tsx": 10,
+      "src/pages/SummaryPage.tsx": 1
+    }
+  },
+  "bug.looseEquality": {
+    "perFile": {
+      "sdk-js/src/runtime.ts": 1,
+      "src/lib/backend-error.ts": 1,
+      "src/pages/metadata/dataExportUtils.ts": 4
+    }
+  },
+  "bug.todo": {
+    "perFile": {}
+  },
+  "fileSize.over800": {
+    "perFile": {
+      "sdk-js/src/packager.ts": 76,
+      "sdk-js/src/runtime.ts": 2,
+      "src-tauri/src/commands/channels.rs": 93,
+      "src-tauri/src/commands/cli.rs": 32,
+      "src-tauri/src/commands/dependencies.rs": 578,
+      "src-tauri/src/commands/download.rs": 2133,
+      "src-tauri/src/commands/metadata.rs": 305,
+      "src-tauri/src/commands/processing.rs": 431,
+      "src-tauri/src/commands/video.rs": 756,
+      "src-tauri/src/database/history.rs": 958,
+      "src-tauri/src/lib.rs": 134,
+      "src-tauri/src/services/ai.rs": 164,
+      "src-tauri/src/services/ai/providers.rs": 547,
+      "src-tauri/src/services/plugin.rs": 1477,
+      "src-tauri/src/services/plugin/bridge.rs": 254,
+      "src-tauri/src/services/ytdlp.rs": 535,
+      "src/components/download/QueueItem.tsx": 2,
+      "src/components/download/YoutubeKeywordSearch.tsx": 72,
+      "src/components/history/HistoryItem.tsx": 106,
+      "src/components/settings/plugins/PluginWorkspaceCreateFlow.tsx": 304,
+      "src/components/settings/sections/AISection.tsx": 351,
+      "src/components/settings/sections/DependenciesSection.tsx": 183,
+      "src/components/settings/sections/DownloadSection.tsx": 36,
+      "src/contexts/DownloadContext.tsx": 1336,
+      "src/contexts/UniversalContext.tsx": 695,
+      "src/contexts/channels/useChannelsController.ts": 734,
+      "src/contexts/processing/useProcessingController.ts": 245,
+      "src/i18n/locales/ar/settings.json": 130,
+      "src/i18n/locales/en/settings.json": 135,
+      "src/i18n/locales/es/settings.json": 135,
+      "src/i18n/locales/fr/settings.json": 130,
+      "src/i18n/locales/ja/settings.json": 135,
+      "src/i18n/locales/pt/settings.json": 130,
+      "src/i18n/locales/ro/settings.json": 135,
+      "src/i18n/locales/ru/settings.json": 130,
+      "src/i18n/locales/th/settings.json": 130,
+      "src/i18n/locales/tr/settings.json": 135,
+      "src/i18n/locales/uz/settings.json": 135,
+      "src/i18n/locales/vi/settings.json": 135,
+      "src/i18n/locales/zh-CN/settings.json": 135,
+      "src/lib/types.ts": 575,
+      "tests/youwee-sdk.test.ts": 382
+    }
+  },
+  "i18n.drift": {
+    "perFile": {
+      "fr/pages.json": 3,
+      "fr/metadata.json": 2,
+      "fr/channels.json": 4,
+      "fr/settings.json": 5,
+      "pt/pages.json": 3,
+      "pt/metadata.json": 2,
+      "pt/channels.json": 4,
+      "pt/settings.json": 5,
+      "ru/pages.json": 3,
+      "ru/metadata.json": 2,
+      "ru/channels.json": 4,
+      "ru/settings.json": 5,
+      "th/pages.json": 3,
+      "th/metadata.json": 2,
+      "th/settings.json": 5
+    }
+  },
+  "security.xssSinks": {
+    "perFile": {
+      "extensions/youwee-webext/src/content.js": 4,
+      "extensions/youwee-webext/src/popup.js": 2
+    }
+  },
+  "style.lineLength": {
+    "perFile": {
+      "extensions/youwee-webext/src/content.css": 1,
+      "extensions/youwee-webext/src/content.js": 5,
+      "extensions/youwee-webext/src/popup.js": 3,
+      "sdk-js/src/manifest.ts": 1,
+      "src-tauri/src/commands/dependencies.rs": 1,
+      "src-tauri/src/commands/processing.rs": 2,
+      "src-tauri/src/database/channels.rs": 2,
+      "src-tauri/src/database/history.rs": 6,
+      "src-tauri/src/services/ai.rs": 9,
+      "src-tauri/src/services/ffmpeg.rs": 1,
+      "src-tauri/src/services/gallerydl.rs": 1,
+      "src-tauri/src/services/plugin/manifest.rs": 1,
+      "src-tauri/src/services/plugin/scaffold.rs": 1,
+      "src-tauri/src/services/plugin/tests.rs": 1,
+      "src-tauri/src/services/telegram.rs": 1,
+      "src-tauri/src/services/ytdlp.rs": 8,
+      "src-tauri/src/utils/security.rs": 3,
+      "src/App.tsx": 1,
+      "src/components/UpdateDialog.tsx": 6,
+      "src/components/download/DuplicateDownloadDialog.tsx": 2,
+      "src/components/download/GalleryQueueItem.tsx": 1,
+      "src/components/download/GallerySettingsPanel.tsx": 1,
+      "src/components/download/GalleryUrlInput.tsx": 1,
+      "src/components/download/QueueItem.tsx": 12,
+      "src/components/download/QueueStatusFilter.tsx": 2,
+      "src/components/download/SettingsPanel.tsx": 2,
+      "src/components/download/ThumbnailStatusBadge.tsx": 2,
+      "src/components/download/UniversalQueueItem.tsx": 12,
+      "src/components/download/UniversalSettingsPanel.tsx": 1,
+      "src/components/download/UniversalUrlInput.tsx": 1,
+      "src/components/download/UrlInput.tsx": 3,
+      "src/components/download/VideoPreview.tsx": 2,
+      "src/components/download/YoutubeKeywordSearch.tsx": 9,
+      "src/components/download/schedule/ScheduleActiveControls.tsx": 3,
+      "src/components/download/schedule/SchedulePopover.tsx": 5,
+      "src/components/history/HistoryItem.tsx": 7,
+      "src/components/history/HistorySummaryDialog.tsx": 7,
+      "src/components/history/HistoryTagsCollectionsDialog.tsx": 2,
+      "src/components/layout/MainLayout.tsx": 1,
+      "src/components/media/SplitMediaDialog.tsx": 3,
+      "src/components/player/MusicPlayer.tsx": 10,
+      "src/components/processing/ChatPanel.tsx": 6,
+      "src/components/processing/HistoryDialog.tsx": 1,
+      "src/components/processing/VideoTimeline.tsx": 3,
+      "src/components/settings/plugins/PluginImportInstallFlow.tsx": 1,
+      "src/components/settings/plugins/PluginLogsWorkflowsFlow.tsx": 4,
+      "src/components/settings/sections/AISection.tsx": 6,
+      "src/components/settings/sections/DependenciesSection.tsx": 3,
+      "src/components/settings/sections/DownloadSection.tsx": 1,
+      "src/components/settings/sections/GeneralSection.tsx": 1,
+      "src/components/settings/sections/NetworkSection.tsx": 1,
+      "src/components/settings/sections/PluginStoreSection.tsx": 2,
+      "src/components/subtitles/GrammarFixDialog.tsx": 1,
+      "src/components/subtitles/SplitMergeDialog.tsx": 1,
+      "src/components/subtitles/SubtitleBatchProjectDialog.tsx": 1,
+      "src/components/subtitles/SubtitleStyleProfileDialog.tsx": 1,
+      "src/components/subtitles/SubtitleToolbar.tsx": 1,
+      "src/components/subtitles/SubtitleVideoPreview.tsx": 1,
+      "src/components/subtitles/TimingDialog.tsx": 2,
+      "src/components/ui/alert-dialog.tsx": 1,
+      "src/components/ui/badge.tsx": 1,
+      "src/components/ui/button.tsx": 1,
+      "src/components/ui/dialog.tsx": 2,
+      "src/components/ui/input.tsx": 1,
+      "src/components/ui/popover.tsx": 1,
+      "src/components/ui/select.tsx": 3,
+      "src/components/ui/slider.tsx": 1,
+      "src/components/ui/switch.tsx": 2,
+      "src/components/ui/tabs.tsx": 1,
+      "src/components/ui/textarea.tsx": 1,
+      "src/components/ui/toast/ToastItem.tsx": 1,
+      "src/components/ui/tooltip.tsx": 1,
+      "src/hooks/useExternalDownloadLinks.ts": 1,
+      "src/lib/subtitle-parser.ts": 1,
+      "src/pages/ChannelsPage.tsx": 4,
+      "src/pages/DownloadPage.tsx": 1,
+      "src/pages/ProcessingPage.tsx": 3,
+      "src/pages/SettingsPage.tsx": 8,
+      "src/pages/SubtitlesPage.tsx": 1,
+      "src/pages/SummaryPage.tsx": 4,
+      "src/pages/channels/ChannelDetailView.tsx": 1,
+      "src/pages/channels/ChannelFetchLoadingState.tsx": 1,
+      "src/pages/channels/ChannelSettingsBar.tsx": 1,
+      "src/pages/metadata/AssetsExportTab.tsx": 1,
+      "src/pages/metadata/DataExportTab.tsx": 1,
+      "tests/external-link.test.ts": 2
+    }
+  },
+  "style.fileNaming": {
+    "perFile": {
+      "src/components/settings/plugins/post-download-plugins-shared.tsx": 1
+    }
+  },
+  "style.tsEscapes": {
+    "perFile": {}
+  }
+}
