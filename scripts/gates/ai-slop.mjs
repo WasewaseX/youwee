@@ -1,4 +1,4 @@
-// Gate: AI SLOP DETECTOR (blocking, extreme)
+// Gate: AI SLOP DETECTOR (blocking, strict)
 //   - LLM self-references and placeholder text       -> zero tolerance
 //   - emoji in code (outside string literals)        -> zero tolerance
 //   - cliche marketing/filler phrases in comments    -> ratcheted

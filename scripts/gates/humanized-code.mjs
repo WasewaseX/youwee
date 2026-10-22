@@ -1,4 +1,4 @@
-// Gate: HUMANIZED CODE CHECK (blocking, extreme)
+// Gate: HUMANIZED CODE CHECK (blocking, strict)
 //   - filler comment openers ("This function ...")  -> ratcheted
 //   - generic placeholder identifiers (foo, doStuff) -> ratcheted
 

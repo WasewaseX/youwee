@@ -226,5 +226,8 @@
   },
   "style.tsEscapes": {
     "perFile": {}
+  },
+  "circularImports": {
+    "total": 5
   }
 }
