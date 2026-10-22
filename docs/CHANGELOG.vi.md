@@ -7,6 +7,13 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Sửa lỗi
+- **Nhóm trình khởi chạy Linux** - Gửi kèm mẫu desktop entry tùy chỉnh với `Categories=Network;AudioVideo;Video;` để Youwee không còn bị xếp vào nhóm "Other" chung chung trong menu ứng dụng trên Linux (deb và AppImage) (#127)
+- **Hướng dẫn cho video giới hạn độ tuổi** - Phát hiện lỗi age-gate của YouTube trong quá trình tải xuống và hiển thị thông báo hữu ích hướng tới cài đặt cookie hiện có thay vì kết quả độ phân giải thấp không rõ lý do (#128)
+
+### Thêm mới
+- **Đường dẫn FFmpeg tùy chỉnh** - Nguồn phụ thuộc "Custom Path" mới cho phép người dùng trỏ Youwee tới bản build FFmpeg di động: chọn một file thực thi hoặc một thư mục trong Cài đặt, với các thao tác duyệt/xóa được bản địa hóa cho đủ 13 ngôn ngữ (#80)
+
 ## [0.20.4] - 2026-09-20
 
 ### Sửa lỗi

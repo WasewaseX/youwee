@@ -7,6 +7,13 @@ Youwee 的所有重要更改都将记录在此文件中。
 
 ## [Unreleased]
 
+### 修复
+- **Linux 启动器分类** - 提供带有 `Categories=Network;AudioVideo;Video;` 的自定义 desktop entry 模板，使 Youwee 在 Linux（deb 与 AppImage）的应用菜单中不再被归入通用的"其他"分组 (#127)
+- **年龄限制视频提示** - 在下载过程中检测 YouTube 的年龄验证错误，并给出指向现有 Cookie 设置的可操作提示，而不是无声地得到低分辨率结果 (#128)
+
+### 新增
+- **自定义 FFmpeg 路径** - 新增"自定义路径"依赖来源，允许用户将 Youwee 指向便携版 FFmpeg：在设置中选择一个可执行文件或包含 ffmpeg 的文件夹，浏览/清除操作已本地化为全部 13 种语言 (#80)
+
 ## [0.20.4] - 2026-09-20
 
 ### 修复
