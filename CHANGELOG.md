@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Linux launcher category** - Ship a custom desktop entry template with `Categories=Network;AudioVideo;Video;` so Youwee no longer lands under a generic "Other" group in application menus on Linux (deb and AppImage) (#127)
+
 ## [0.20.4] - 2026-09-20
 
 ### Fixed

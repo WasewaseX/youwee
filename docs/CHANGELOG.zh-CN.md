@@ -7,6 +7,9 @@ Youwee 的所有重要更改都将记录在此文件中。
 
 ## [Unreleased]
 
+### Fixed
+- **Linux 启动器分类** - 提供带有 `Categories=Network;AudioVideo;Video;` 的自定义 desktop entry 模板，使 Youwee 在 Linux（deb 与 AppImage）的应用菜单中不再被归入通用的"其他"分组 (#127)
+
 ## [0.20.4] - 2026-09-20
 
 ### 修复

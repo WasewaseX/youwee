@@ -7,6 +7,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Fixed
+- **Nhóm trình khởi chạy Linux** - Gửi kèm mẫu desktop entry tùy chỉnh với `Categories=Network;AudioVideo;Video;` để Youwee không còn bị xếp vào nhóm "Other" chung chung trong menu ứng dụng trên Linux (deb và AppImage) (#127)
+
 ## [0.20.4] - 2026-09-20
 
 ### Sửa lỗi
