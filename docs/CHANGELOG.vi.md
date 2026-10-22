@@ -7,6 +7,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Thêm mới
+- **Đường dẫn FFmpeg tùy chỉnh** - Nguồn phụ thuộc "Custom Path" mới cho phép người dùng trỏ Youwee tới bản build FFmpeg di động: chọn một file thực thi hoặc một thư mục trong Cài đặt, với các thao tác duyệt/xóa được bản địa hóa cho đủ 13 ngôn ngữ (#80)
+
 ## [0.20.4] - 2026-09-20
 
 ### Sửa lỗi

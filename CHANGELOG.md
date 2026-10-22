@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Custom FFmpeg path** - New "Custom Path" dependency source lets users point Youwee at a portable FFmpeg build: pick a binary or a folder in Settings, with browse/clear actions localized for all 13 languages (#80)
+
 ## [0.20.4] - 2026-09-20
 
 ### Fixed
