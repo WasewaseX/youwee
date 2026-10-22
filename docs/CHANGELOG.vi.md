@@ -7,6 +7,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Fixed
+- **Hướng dẫn cho video giới hạn độ tuổi** - Phát hiện lỗi age-gate của YouTube trong quá trình tải xuống và hiển thị thông báo hữu ích hướng tới cài đặt cookie hiện có thay vì kết quả độ phân giải thấp không rõ lý do (#128)
+
 ## [0.20.4] - 2026-09-20
 
 ### Sửa lỗi

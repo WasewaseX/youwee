@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Age-restricted video guidance** - Detect YouTube age-gate errors during downloads and surface an actionable message that points users to the existing cookie settings instead of an unexplained low-resolution result (#128)
+
 ## [0.20.4] - 2026-09-20
 
 ### Fixed
