@@ -1,6 +1,6 @@
 {
   "$comment": "SHA-256 pins for CI-critical files. Regenerate: bun scripts/gates/integrity-generate.mjs",
-  "generatedAt": "2026-10-22T08:24:32.761Z",
+  "generatedAt": "2026-10-22T08:36:23.675Z",
   "files": {
     ".github/workflows/build.yml": "50bb97b25be83f51e2da3b0fae1b1bfcd4177f3cf9ab40fb5bd11e6811a9db12",
     ".github/workflows/ci.yml": "669dbceb543a07a795ecf9d691a3b149d11c77ddd0664dc92dcccf04b421d139",
@@ -16,6 +16,7 @@
     "scripts/gates/bug-patterns.mjs": "2060cbbb796e2aa3b53204b39952ffe6ee3beedaaf6045b096ca8515867e3201",
     "scripts/gates/calibrate-baselines.mjs": "09a78784ae707b63c4262ee78aff3f87686b8d3109d94cf7692b2428d1ab6bbe",
     "scripts/gates/changelog-check.mjs": "89b68ea818f2857539852c1cd500a2e3026ddf103e585e28f862fe31d87054d0",
+    "scripts/gates/circular-imports.mjs": "fa7b97adea90e4ffef4a85d2d7166546d76ffce1453057785aea9e7a694269a6",
     "scripts/gates/clippy-diff.mjs": "500d4cb99dc639dbe88ca9c2d11e6a59883ffe2416dd2b9e33b2359c97835f94",
     "scripts/gates/commit-body-width.mjs": "f6b127f8ab28a9af891de2395cc23a8f38a8174a549770293fefa32f5ce519cf",
     "scripts/gates/commit-gates.mjs": "2af21cb2f67bf37ffe3ac79565b4318cbe278c9eb0fcf4148a54ff4cee194f07",
