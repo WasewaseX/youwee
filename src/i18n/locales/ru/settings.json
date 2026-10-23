@@ -591,7 +591,9 @@
     "confirmProceed": "Switch",
     "systemFfmpegNotFound": "System FFmpeg not found",
     "systemYtdlp": "System yt-dlp - update via package manager",
-    "systemYtdlpNotFound": "System yt-dlp not found"
+    "systemYtdlpNotFound": "System yt-dlp not found",
+    "customPathBrowseFolder": "Папка",
+    "customPathFolderDialogTitle": "Выберите папку с FFmpeg"
   },
   "network": {
     "title": "Сеть и авторизация",

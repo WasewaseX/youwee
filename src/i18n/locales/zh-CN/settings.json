@@ -664,7 +664,9 @@
     "downloadingYtdlp": "正在下载 yt-dlp...",
     "downloading": "下载中",
     "extracting": "正在解压...",
-    "verifying": "正在验证..."
+    "verifying": "正在验证...",
+    "customPathBrowseFolder": "文件夹",
+    "customPathFolderDialogTitle": "选择包含 FFmpeg 的文件夹"
   },
   "network": {
     "title": "网络与认证",

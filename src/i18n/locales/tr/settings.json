@@ -664,7 +664,9 @@
     "downloadingYtdlp": "yt-dlp indiriliyor...",
     "downloading": "İndiriliyor",
     "extracting": "Çıkarılıyor...",
-    "verifying": "Doğrulanıyor..."
+    "verifying": "Doğrulanıyor...",
+    "customPathBrowseFolder": "Klasör",
+    "customPathFolderDialogTitle": "FFmpeg içeren klasörü seçin"
   },
   "network": {
     "title": "Ağ ve Kimlik Doğrulama",

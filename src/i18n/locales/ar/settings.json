@@ -591,7 +591,9 @@
     "downloadingYtdlp": "جارٍ تنزيل yt-dlp...",
     "downloading": "جارٍ التنزيل",
     "extracting": "جارٍ الاستخراج...",
-    "verifying": "جارٍ التحقق..."
+    "verifying": "جارٍ التحقق...",
+    "customPathBrowseFolder": "مجلد",
+    "customPathFolderDialogTitle": "اختر المجلد الذي يحتوي على FFmpeg"
   },
   "network": {
     "title": "الشبكة والمصادقة",

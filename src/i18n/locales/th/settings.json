@@ -591,7 +591,9 @@
     "downloadingYtdlp": "กำลังดาวน์โหลด yt-dlp...",
     "downloading": "กำลังดาวน์โหลด",
     "extracting": "กำลังแตกไฟล์...",
-    "verifying": "กำลังตรวจสอบ..."
+    "verifying": "กำลังตรวจสอบ...",
+    "customPathBrowseFolder": "โฟลเดอร์",
+    "customPathFolderDialogTitle": "เลือกโฟลเดอร์ที่มี FFmpeg"
   },
   "network": {
     "title": "เครือข่ายและการยืนยันตัวตน",

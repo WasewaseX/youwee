@@ -664,7 +664,9 @@
     "downloadingYtdlp": "Descargando yt-dlp...",
     "downloading": "Descargando",
     "extracting": "Extrayendo...",
-    "verifying": "Verificando..."
+    "verifying": "Verificando...",
+    "customPathBrowseFolder": "Carpeta",
+    "customPathFolderDialogTitle": "Elegir la carpeta que contiene FFmpeg"
   },
   "network": {
     "title": "Red y autenticación",

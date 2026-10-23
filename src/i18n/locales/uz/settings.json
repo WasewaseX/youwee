@@ -664,7 +664,9 @@
     "downloadingYtdlp": "yt-dlp yuklab olinmoqda...",
     "downloading": "Yuklab olinmoqda",
     "extracting": "Chiqarilmoqda...",
-    "verifying": "Tekshirilmoqda..."
+    "verifying": "Tekshirilmoqda...",
+    "customPathBrowseFolder": "Papka",
+    "customPathFolderDialogTitle": "FFmpeg joylashgan papkani tanlang"
   },
   "network": {
     "title": "Tarmoq va autentifikatsiya",

@@ -664,7 +664,9 @@
     "downloadingYtdlp": "Đang tải yt-dlp...",
     "downloading": "Đang tải",
     "extracting": "Đang giải nén...",
-    "verifying": "Đang xác minh..."
+    "verifying": "Đang xác minh...",
+    "customPathBrowseFolder": "Thư mục",
+    "customPathFolderDialogTitle": "Chọn thư mục chứa FFmpeg"
   },
   "network": {
     "title": "Mạng & Xác thực",

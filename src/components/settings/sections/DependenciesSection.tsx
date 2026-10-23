@@ -183,6 +183,24 @@ export function DependenciesSection({ highlightId }: DependenciesSectionProps) {
     }
   };
 
+  // Same setting accepts a folder that contains ffmpeg; the backend resolves
+  // it, so offer a directory picker for portable builds.
+  const handleBrowseFfmpegFolder = async () => {
+    try {
+      const selected = await open({
+        multiple: false,
+        directory: true,
+        title: t('dependencies.customPathFolderDialogTitle'),
+      });
+      if (typeof selected === 'string' && selected.trim() !== '') {
+        await setFfmpegCustomPath(selected);
+        setFfmpegPathDraft(null);
+      }
+    } catch {
+      // Dialog cancelled or failed; nothing to do.
+    }
+  };
+
   const handleClearFfmpegPath = async () => {
     await setFfmpegCustomPath('');
     setFfmpegPathDraft(null);
@@ -712,6 +730,15 @@ export function DependenciesSection({ highlightId }: DependenciesSectionProps) {
                       disabled={ffmpegDownloading || ffmpegCheckingUpdate}
                     >
                       {t('dependencies.customPathBrowse')}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={handleBrowseFfmpegFolder}
+                      disabled={ffmpegDownloading || ffmpegCheckingUpdate}
+                    >
+                      {t('dependencies.customPathBrowseFolder')}
                     </Button>
                     {ffmpegCustomPath ? (
                       <Button

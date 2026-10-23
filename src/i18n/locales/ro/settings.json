@@ -664,7 +664,9 @@
     "downloadingYtdlp": "Se descarcă yt-dlp...",
     "downloading": "Descărcare",
     "extracting": "Se extrage...",
-    "verifying": "Se verifică..."
+    "verifying": "Se verifică...",
+    "customPathBrowseFolder": "Dosar",
+    "customPathFolderDialogTitle": "Alegeți dosarul care conține FFmpeg"
   },
   "network": {
     "title": "Rețea și autentificare",
