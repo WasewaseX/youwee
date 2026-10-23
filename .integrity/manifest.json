@@ -1,11 +1,11 @@
 {
   "$comment": "SHA-256 pins for CI-critical files. Regenerate: bun scripts/gates/integrity-generate.mjs",
-  "generatedAt": "2026-10-23T11:38:41.750Z",
+  "generatedAt": "2026-10-23T12:05:28.399Z",
   "files": {
     ".github/workflows/build.yml": "50bb97b25be83f51e2da3b0fae1b1bfcd4177f3cf9ab40fb5bd11e6811a9db12",
     ".github/workflows/ci.yml": "669dbceb543a07a795ecf9d691a3b149d11c77ddd0664dc92dcccf04b421d139",
     ".github/workflows/flatpak-test.yml": "545311376082b433a0c68a6d3a8b9a56b8982c7b1b2c061d100ea1945a18adb7",
-    ".github/workflows/quality-gates.yml": "edd255e9af0f93d6b857259f52f1fd0abeb9b054161385ed758aaa9a7c415885",
+    ".github/workflows/quality-gates.yml": "e27940ec6538dea01544113075be75deb42057282b468bf81d9a395b744b2188",
     ".github/workflows/snap.yml": "bc97911c38e2aadb76b04de062736f5318297856b1381928bfb197215a4ccb61",
     ".gitleaks.toml": "35f77e2d6c713035a00f89d46e7c54d3c2eeec0bbba54296b79f45496604c304",
     "CONTRIBUTING.md": "0bac7b1976b5bac27e308ac3bfe78c92152aee93e51c17ccbf527dafe4c37e57",
