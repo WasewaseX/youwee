@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Linux launcher category** - Ship a custom desktop entry template with `Categories=Network;AudioVideo;Video;` so Youwee no longer lands under a generic "Other" group in application menus on Linux (deb and AppImage) (#127)
-- **Age-restricted video guidance** - Detect YouTube age-gate errors during downloads and surface an actionable message that points users to the existing cookie settings instead of an unexplained low-resolution result (#128)
+- **Age-restricted video guidance** - Detect YouTube age-gate errors and warn when a download silently finishes at the 360p fallback despite a higher quality request, pointing users to the existing cookie settings instead of an unexplained low-resolution result (#128)
 
 ### Added
-- **Custom FFmpeg path** - New "Custom Path" dependency source lets users point Youwee at a portable FFmpeg build: pick a binary or a folder in Settings, with browse/clear actions localized for all 13 languages (#80)
+- **Custom FFmpeg path** - New "Custom Path" dependency source lets users point Youwee at a portable FFmpeg build: pick a binary or a folder with the file or folder picker in Settings; the chosen binary is validated before use and the app falls back to the system FFmpeg when it cannot run (#80)
 
 ## [0.20.4] - 2026-09-20
 

@@ -1,6 +1,6 @@
 {
   "$comment": "SHA-256 pins for CI-critical files. Regenerate: bun scripts/gates/integrity-generate.mjs",
-  "generatedAt": "2026-10-22T08:36:23.675Z",
+  "generatedAt": "2026-10-23T11:38:41.750Z",
   "files": {
     ".github/workflows/build.yml": "50bb97b25be83f51e2da3b0fae1b1bfcd4177f3cf9ab40fb5bd11e6811a9db12",
     ".github/workflows/ci.yml": "669dbceb543a07a795ecf9d691a3b149d11c77ddd0664dc92dcccf04b421d139",
@@ -11,7 +11,7 @@
     "CONTRIBUTING.md": "0bac7b1976b5bac27e308ac3bfe78c92152aee93e51c17ccbf527dafe4c37e57",
     "scripts/gates/ai-slop.mjs": "83780fc9567d8b781a9f32b4d1a72dff1eb5e6f52b0cacf76bf89b78f70c2883",
     "scripts/gates/author-gate.mjs": "202770c9849a63e33abd0adb99bf4f5e6bc19352ae67a7f274543cc7ba00dde5",
-    "scripts/gates/baselines.json": "0e45d47459c56363c03e4e7b3c083358cc7c2b3690249aa4f4f06a844b874c28",
+    "scripts/gates/baselines.json": "5833e16bab2abc5b672688d233d89f7a764d8de8e32295344b448f61a077d21c",
     "scripts/gates/blank-target-safety.mjs": "dca9113793310508e7e87e27c425e2770d0747735d2ed028d83549604af79120",
     "scripts/gates/bug-patterns.mjs": "2060cbbb796e2aa3b53204b39952ffe6ee3beedaaf6045b096ca8515867e3201",
     "scripts/gates/calibrate-baselines.mjs": "09a78784ae707b63c4262ee78aff3f87686b8d3109d94cf7692b2428d1ab6bbe",
