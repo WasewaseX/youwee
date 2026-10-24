@@ -651,65 +651,6 @@ pub fn is_age_restricted_error(stderr: &str) -> bool {
         || normalized.contains("age-restriction")
 }
 
-/// Outcome of a download that succeeded at a lower resolution than requested.
-pub struct SilentDowngrade {
-    /// Actual resolution label, e.g. "360p", for display on the queue item.
-    pub resolution: String,
-    /// User-facing hint explaining the downgrade and how to lift it.
-    pub hint: String,
-}
-
-/// Detect a download that succeeded but silently fell back to a
-/// low-resolution muxed stream. Without account cookies YouTube offers only
-/// these streams for age-restricted videos, so every format chain ends in a
-/// `best` fallback and yt-dlp exits successfully at 360p. The selected
-/// formats show up on stderr as `[info] <id>: Downloading 1 format(s): 18`.
-pub fn detect_silent_downgrade(output: &str, requested_quality: &str) -> Option<SilentDowngrade> {
-    let requested_height = match requested_quality {
-        "8k" => 4320,
-        "4k" => 2160,
-        "2k" => 1440,
-        "1080" => 1080,
-        "720" => 720,
-        "480" => 480,
-        _ => return None,
-    };
-
-    let selected = output.lines().rev().find_map(|line| {
-        let marker = " format(s): ";
-        let idx = line.find(marker)?;
-        Some(line[idx + marker.len()..].trim().to_string())
-    })?;
-
-    // Merged or multi-format selections mean real video streams were
-    // available; only a single muxed itag indicates the fallback path.
-    if selected.is_empty() || selected.contains('+') || selected.contains(',') {
-        return None;
-    }
-
-    let (height, label) = match selected.as_str() {
-        "17" => (144, "144p"),
-        "18" => (360, "360p"),
-        "22" => (720, "720p"),
-        _ => return None,
-    };
-
-    if height >= requested_height {
-        return None;
-    }
-
-    Some(SilentDowngrade {
-        resolution: label.to_string(),
-        hint: format!(
-            "Download finished at {} because YouTube only offered the low-resolution muxed \
-             stream for this video. Without account cookies, age-restricted videos are \
-             capped at about 360p. Enable cookies in Settings → Network (Cookie Mode) to \
-             download the requested quality.",
-            label
-        ),
-    })
-}
-
 /// Helper to run yt-dlp command and get JSON output
 pub async fn run_ytdlp_json(app: &AppHandle, args: &[&str]) -> Result<String, String> {
     let source = get_ytdlp_source(app).await;
@@ -1374,42 +1315,6 @@ mod tests {
             .message()
             .to_lowercase()
             .contains("age-restricted video detected"));
-    }
-
-    #[test]
-    fn detect_silent_downgrade_flags_muxed_fallback_below_request() {
-        // Age-restricted without cookies: yt-dlp succeeds on the 360p muxed
-        // itag 18 even though 1080p was requested.
-        let output = "[youtube] abc: Downloading webpage\n\
-                      [info] abc: Downloading 1 format(s): 18\n\
-                      [download] Destination: video.mp4";
-        let downgrade =
-            detect_silent_downgrade(output, "1080").expect("downgrade should be detected");
-        assert_eq!(downgrade.resolution, "360p");
-        assert!(downgrade.hint.to_lowercase().contains("cookie"));
-    }
-
-    #[test]
-    fn detect_silent_downgrade_ignores_merged_and_full_quality_selections() {
-        let merged = "[info] abc: Downloading 1 format(s): 137+140\n";
-        assert!(detect_silent_downgrade(merged, "1080").is_none());
-
-        let multi = "[info] abc: Downloading 2 format(s): 137, 140\n";
-        assert!(detect_silent_downgrade(multi, "1080").is_none());
-
-        // Requested quality met or unknown itag: no downgrade.
-        let exact = "[info] abc: Downloading 1 format(s): 18\n";
-        assert!(detect_silent_downgrade(exact, "360").is_none());
-        let unknown = "[info] abc: Downloading 1 format(s): bestaudio\n";
-        assert!(detect_silent_downgrade(unknown, "1080").is_none());
-    }
-
-    #[test]
-    fn detect_silent_downgrade_ignores_audio_and_best_requests() {
-        let output = "[info] abc: Downloading 1 format(s): 18\n";
-        assert!(detect_silent_downgrade(output, "best").is_none());
-        assert!(detect_silent_downgrade(output, "audio").is_none());
-        assert!(detect_silent_downgrade("no format line here", "1080").is_none());
     }
 
     #[test]

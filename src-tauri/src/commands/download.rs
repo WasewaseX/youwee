@@ -25,11 +25,10 @@ use crate::database::ensure_collection_for_download_in_db;
 use crate::database::update_history_download;
 use crate::services::{
     add_safe_filename_args, build_cookie_args, build_proxy_args, build_site_header_args,
-    build_youtube_extractor_args, build_ytdlp_advanced_args, detect_silent_downgrade,
-    enqueue_post_download_workflow, get_deno_path, get_ffmpeg_path, get_ytdlp_path,
-    get_ytdlp_source, is_upcoming_live_error, redact_ytdlp_advanced_args,
-    resolve_download_workflow_snapshot, run_ytdlp_with_stderr, system_ytdlp_not_found_message,
-    YtdlpAdvancedOption,
+    build_youtube_extractor_args, build_ytdlp_advanced_args, enqueue_post_download_workflow,
+    get_deno_path, get_ffmpeg_path, get_ytdlp_path, get_ytdlp_source, is_upcoming_live_error,
+    redact_ytdlp_advanced_args, resolve_download_workflow_snapshot, run_ytdlp_with_stderr,
+    system_ytdlp_not_found_message, YtdlpAdvancedOption,
 };
 use crate::types::{
     BackendError, DependencySource, DownloadProgress, PluginWorkflowStepSnapshot,
@@ -2775,19 +2774,6 @@ async fn handle_tokio_download(
             }
         }
 
-        // A successful download can still be a silent downgrade: without
-        // cookies YouTube serves the 360p muxed stream for age-restricted
-        // videos. Surface the actual resolution instead of the requested one.
-        let downgrade =
-            detect_silent_downgrade(&recent_output_snapshot(&recent_output).join("\n"), &quality);
-        if let Some(warning) = downgrade.as_ref().map(|d| d.hint.as_str()) {
-            add_log_internal("warning", warning, None, Some(&url)).ok();
-        }
-        let resolution_display = downgrade
-            .as_ref()
-            .map(|d| d.resolution.clone())
-            .or_else(|| quality_display.clone());
-
         let progress = DownloadProgress {
             id: id.clone(),
             percent: 100.0,
@@ -2798,7 +2784,7 @@ async fn handle_tokio_download(
             playlist_index: current_index,
             playlist_count: total_count,
             filesize: reported_filesize,
-            resolution: resolution_display,
+            resolution: quality_display.clone(),
             format_ext: Some(format.clone()),
             error_message: None,
             error_code: None,
