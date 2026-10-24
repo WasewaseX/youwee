@@ -548,7 +548,7 @@
     "customPathPlaceholder": "مثال: C:\\ffmpeg\\bin\\ffmpeg.exe أو /usr/local/bin/ffmpeg",
     "customPathBrowse": "استعراض",
     "customPathClear": "مسح",
-    "customPathHint": "استخدم نسخة FFmpeg المحمولة. يتم استخدام مسار الملف مباشرة؛ أما المجلد فيتم البحث فيه عن ffmpeg.",
+    "customPathHint": "استخدم نسخة FFmpeg المحمولة. يتم استخدام مسار الملف مباشرة؛ أما المجلد فيتم البحث فيه عن ffmpeg. يتم التحقق من الملف المختار بتشغيله قبل الاستخدام.",
     "confirmSwitchSystemTitle": "التبديل إلى اعتماد النظام؟",
     "confirmSwitchSystemYtdlp": "هل تريد تبديل مصدر yt-dlp إلى System؟\n\nإذا كان yt-dlp الخاص بالنظام مفقودًا أو مكوّنًا بشكل خاطئ، فقد تفشل التنزيلات/البيانات الوصفية حتى تعود إلى App managed.",
     "confirmSwitchSystemFfmpeg": "هل تريد تبديل مصدر FFmpeg إلى System؟\n\nإذا كان FFmpeg الخاص بالنظام مفقودًا أو مكوّنًا بشكل خاطئ، فقد تفشل معالجة الفيديو حتى تعود إلى App managed.",

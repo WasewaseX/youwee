@@ -141,7 +141,7 @@ pub async fn set_ffmpeg_custom_path_setting(app: &AppHandle, path: &str) -> Resu
 /// Accepts either a direct path to the `ffmpeg` binary or a directory that
 /// contains it. Returns `None` when the path is missing, is not a file, or
 /// (on unix) lacks execute permission.
-fn resolve_custom_binary(configured: Option<String>) -> Option<PathBuf> {
+pub fn resolve_custom_binary(configured: Option<String>) -> Option<PathBuf> {
     let configured = configured?;
     let candidate = PathBuf::from(&configured);
     let binary = if candidate.is_dir() {

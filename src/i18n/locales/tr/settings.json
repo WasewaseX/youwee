@@ -621,7 +621,7 @@
     "customPathPlaceholder": "örn. C:\\ffmpeg\\bin\\ffmpeg.exe veya /usr/local/bin/ffmpeg",
     "customPathBrowse": "Gözat",
     "customPathClear": "Temizle",
-    "customPathHint": "Taşınabilir bir FFmpeg derlemesi kullanın. Dosya yolu doğrudan kullanılır; klasör içinde ffmpeg aranır.",
+    "customPathHint": "Taşınabilir bir FFmpeg derlemesi kullanın. Dosya yolu doğrudan kullanılır; klasör içinde ffmpeg aranır. Seçilen çalıştırılabilir dosya kullanılmadan önce çalıştırılarak doğrulanır.",
     "confirmSwitchSystemTitle": "Sistem bağımlılığına geçilsin mi?",
     "confirmSwitchSystemYtdlp": "yt-dlp kaynağı Sistem'e değiştirilsin mi?\n\nyt-dlp sistemi eksikse veya yanlış yapılandırılmışsa, Uygulama yönetimli moduna geri dönene kadar /metadata indirmeleri başarısız olabilir.",
     "confirmSwitchSystemFfmpeg": "FFmpeg kaynağı Sistem'e değiştirilsin mi?\n\nFFmpeg sistemi eksikse veya yanlış yapılandırılmışsa Uygulama yönetimli moduna geri dönene kadar video işleme başarısız olabilir.",

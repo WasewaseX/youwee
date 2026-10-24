@@ -583,7 +583,7 @@
     "customPathPlaceholder": "напр. C:\\ffmpeg\\bin\\ffmpeg.exe или /usr/local/bin/ffmpeg",
     "customPathBrowse": "Обзор",
     "customPathClear": "Очистить",
-    "customPathHint": "Используйте переносимую сборку FFmpeg. Путь к файлу используется напрямую; в папке будет найден ffmpeg.",
+    "customPathHint": "Используйте переносимую сборку FFmpeg. Путь к файлу используется напрямую; в папке будет найден ffmpeg. Выбранный бинарник проверяется запуском перед использованием.",
     "confirmSwitchSystemTitle": "Switch to system dependency?",
     "confirmSwitchSystemYtdlp": "Switch yt-dlp source to System?\n\nIf system yt-dlp is missing or misconfigured, downloads/metadata may fail until you switch back to App managed.",
     "confirmSwitchSystemFfmpeg": "Switch FFmpeg source to System?\n\nIf system FFmpeg is missing or misconfigured, video processing may fail until you switch back to App managed.",

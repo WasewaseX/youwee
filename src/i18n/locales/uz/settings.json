@@ -621,7 +621,7 @@
     "customPathPlaceholder": "masalan: C:\\ffmpeg\\bin\\ffmpeg.exe yoki /usr/local/bin/ffmpeg",
     "customPathBrowse": "Ko'rish",
     "customPathClear": "Tozalash",
-    "customPathHint": "Ko'chiriladigan FFmpeg versiyasidan foydalaning. Fayl yo'li to'g'ridan-to'g'ri ishlatiladi; papkada ffmpeg qidiriladi.",
+    "customPathHint": "Ko'chiriladigan FFmpeg versiyasidan foydalaning. Fayl yo'li to'g'ridan-to'g'ri ishlatiladi; papkada ffmpeg qidiriladi. Tanlangan fayl ishlatilishidan oldin ishga tushirib tekshiriladi.",
     "confirmSwitchSystemTitle": "Tizimga qaramlikka o'tmoqchimisiz?",
     "confirmSwitchSystemYtdlp": "yt-dlp manbasi Tizimga almashtirilsinmi?\n\nAgar yt-dlp tizimi yoʻq yoki notoʻgʻri sozlangan boʻlsa, “Ilova boshqariladigan”ga qaytmaguningizcha yuklab olish/metamaʼlumotlar muvaffaqiyatsiz boʻlishi mumkin.",
     "confirmSwitchSystemFfmpeg": "FFmpeg manbasi Tizimga almashtirilsinmi?\n\nAgar FFmpeg tizimi yoʻq yoki notoʻgʻri sozlangan boʻlsa, “Ilova boshqariladigan” rejimiga qaytmaguningizcha videoni qayta ishlash ishlamay qolishi mumkin.",

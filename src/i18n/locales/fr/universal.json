@@ -80,6 +80,7 @@
   },
   "queue": {
     "title": "File",
+    "ageRestrictedLowResWarning": "Téléchargement terminé, mais YouTube a limité cette vidéo à une basse résolution (restriction d'âge). Activez les cookies dans Paramètres → Réseau (Mode cookies) pour débloquer des résolutions plus élevées.",
     "pending": "{{count}} en attente",
     "clearDone": "Effacer les terminés",
     "loadingInfo": "Chargement des infos...",

@@ -21,4 +21,6 @@ pub struct DownloadProgress {
     pub filepath: Option<String>,   // Final output path when finished
     pub downloaded_size: Option<String>, // For live streams: "2.87 MiB"
     pub elapsed_time: Option<String>, // For live streams: "00:00:07"
+    pub warning: Option<String>,    // Non-fatal guidance when finished (e.g. quality capped)
+    pub warning_code: Option<String>, // Stable code for localized warning rendering
 }

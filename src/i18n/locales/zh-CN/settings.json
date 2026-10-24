@@ -621,7 +621,7 @@
     "customPathPlaceholder": "例如 C:\\ffmpeg\\bin\\ffmpeg.exe 或 /usr/local/bin/ffmpeg",
     "customPathBrowse": "浏览",
     "customPathClear": "清除",
-    "customPathHint": "使用便携版 FFmpeg。文件路径将被直接使用；文件夹则会在其中查找 ffmpeg。",
+    "customPathHint": "使用便携版 FFmpeg。文件路径将被直接使用；文件夹则会在其中查找 ffmpeg。所选文件在使用前会通过试运行进行验证。",
     "confirmSwitchSystemTitle": "切换到系统依赖？",
     "confirmSwitchSystemYtdlp": "切换 yt-dlp 来源为系统吗？\n\n如果系统 yt-dlp 缺失或配置错误，下载/元数据获取可能失败，直到你切回“应用管理”。",
     "confirmSwitchSystemFfmpeg": "切换 FFmpeg 来源为系统吗？\n\n如果系统 FFmpeg 缺失或配置错误，视频处理可能失败，直到你切回“应用管理”。",

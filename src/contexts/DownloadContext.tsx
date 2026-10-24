@@ -495,6 +495,8 @@ export function DownloadProvider({ children }: { children: ReactNode }) {
                       completedFormat: progress.format_ext,
                       completedFilepath: progress.filepath,
                       completedHistoryId: progress.history_id,
+                      completedWarning: progress.warning || undefined,
+                      completedWarningCode: progress.warning_code || undefined,
                     }
                   : {}),
               }

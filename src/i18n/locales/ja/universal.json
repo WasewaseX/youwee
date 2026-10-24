@@ -80,6 +80,7 @@
   },
   "queue": {
     "title": "キュー",
+    "ageRestrictedLowResWarning": "ダウンロードは完了しましたが、YouTube が年齢制限のため低解像度に制限しました。設定 → ネットワーク（Cookie モード）で Cookie を有効にすると、高解像度でダウンロードできます。",
     "pending": "{{count}} 件が待機中",
     "clearDone": "完了済みをクリア",
     "loadingInfo": "情報を読み込み中...",

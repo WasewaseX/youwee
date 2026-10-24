@@ -583,7 +583,7 @@
     "customPathPlaceholder": "ex.: C:\\ffmpeg\\bin\\ffmpeg.exe ou /usr/local/bin/ffmpeg",
     "customPathBrowse": "Procurar",
     "customPathClear": "Limpar",
-    "customPathHint": "Use uma versão portátil do FFmpeg. Um caminho de arquivo é usado diretamente; uma pasta é pesquisada pelo binário ffmpeg.",
+    "customPathHint": "Use uma versão portátil do FFmpeg. Um caminho de arquivo é usado diretamente; uma pasta é pesquisada pelo binário ffmpeg. O binário selecionado é verificado executando-o antes do uso.",
     "confirmSwitchSystemTitle": "Switch to system dependency?",
     "confirmSwitchSystemYtdlp": "Switch yt-dlp source to System?\n\nIf system yt-dlp is missing or misconfigured, downloads/metadata may fail until you switch back to App managed.",
     "confirmSwitchSystemFfmpeg": "Switch FFmpeg source to System?\n\nIf system FFmpeg is missing or misconfigured, video processing may fail until you switch back to App managed.",
