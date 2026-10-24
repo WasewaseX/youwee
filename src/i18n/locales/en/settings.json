@@ -616,6 +616,12 @@
     "sourceSystemMac": "System (Homebrew)",
     "sourceSystemWindows": "System (PATH)",
     "sourceSystemLinux": "System (Package manager)",
+    "sourceCustomPath": "Custom Path",
+    "customPathDialogTitle": "Choose the FFmpeg executable",
+    "customPathPlaceholder": "e.g. C:\\ffmpeg\\bin\\ffmpeg.exe or /usr/local/bin/ffmpeg",
+    "customPathBrowse": "Browse",
+    "customPathClear": "Clear",
+    "customPathHint": "Use a portable FFmpeg build. A file path is used directly; a folder is searched for the ffmpeg binary inside it. The selected binary is verified by running it before use.",
     "confirmSwitchSystemTitle": "Switch to system dependency?",
     "confirmSwitchSystemYtdlp": "Switch yt-dlp source to System?\n\nIf system yt-dlp is missing or misconfigured, downloads/metadata may fail until you switch back to App managed.",
     "confirmSwitchSystemFfmpeg": "Switch FFmpeg source to System?\n\nIf system FFmpeg is missing or misconfigured, video processing may fail until you switch back to App managed.",
@@ -658,7 +664,9 @@
     "downloadingYtdlp": "Downloading yt-dlp...",
     "downloading": "Downloading",
     "extracting": "Extracting...",
-    "verifying": "Verifying..."
+    "verifying": "Verifying...",
+    "customPathBrowseFolder": "Folder",
+    "customPathFolderDialogTitle": "Choose the folder containing FFmpeg"
   },
   "network": {
     "title": "Network & Authentication",

@@ -175,6 +175,7 @@
   },
   "queue": {
     "title": "队列",
+    "ageRestrictedLowResWarning": "下载已完成，但 YouTube 将该视频限制为低分辨率（年龄限制）。请在 设置 → 网络（Cookie 模式）中启用 Cookie 以解锁更高分辨率。",
     "pending": "{{count}} 个待处理",
     "clearDone": "清除已完成",
     "remove": "从队列移除",

@@ -1,0 +1,9 @@
+# Gitleaks configuration for the youwee fork.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Integrity manifest pins are SHA-256 hashes of tracked files, not secrets"
+paths = [
+  '^\.integrity/manifest\.json$',
+]

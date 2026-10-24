@@ -302,7 +302,7 @@ pub fn run() {
             }
 
             if has_initial_links || !has_cli_request {
-                show_main_window(&app.handle());
+                show_main_window(app.handle());
             }
 
             if cfg!(debug_assertions) {
@@ -360,6 +360,8 @@ pub fn run() {
             commands::check_ffmpeg,
             commands::get_ffmpeg_source_cmd,
             commands::set_ffmpeg_source_cmd,
+            commands::get_ffmpeg_custom_path_cmd,
+            commands::set_ffmpeg_custom_path_cmd,
             commands::check_ffmpeg_update,
             commands::download_ffmpeg,
             commands::get_ffmpeg_path_for_ytdlp,
@@ -609,7 +611,7 @@ fn setup_tray(app: &tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     tray_builder.build(app)?;
 
     // Populate tray menu with channel info
-    rebuild_tray_menu(&app.handle());
+    rebuild_tray_menu(app.handle());
 
     Ok(())
 }
