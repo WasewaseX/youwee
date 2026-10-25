@@ -616,6 +616,12 @@
     "sourceSystemMac": "システム (Homebrew)",
     "sourceSystemWindows": "システム (PATH)",
     "sourceSystemLinux": "システム (パッケージマネージャー)",
+    "sourceCustomPath": "カスタムパス",
+    "customPathDialogTitle": "FFmpeg 実行ファイルを選択",
+    "customPathPlaceholder": "例: C:\\ffmpeg\\bin\\ffmpeg.exe または /usr/local/bin/ffmpeg",
+    "customPathBrowse": "参照",
+    "customPathClear": "クリア",
+    "customPathHint": "ポータブル版 FFmpeg を使用できます。ファイルパスはそのまま使用され、フォルダはその中の ffmpeg を探します。選択したバイナリは使用前に実行して検証されます。",
     "confirmSwitchSystemTitle": "システムの依存関係に切り替えますか？",
     "confirmSwitchSystemYtdlp": "yt-dlp のソースをシステムに切り替えますか？\n\nシステムの yt-dlp が見つからないか設定が間違っている場合、アプリ管理に戻すまでダウンロードやメタデータ取得が失敗する可能性があります。",
     "confirmSwitchSystemFfmpeg": "FFmpeg のソースをシステムに切り替えますか？\n\nシステムの FFmpeg が見つからないか設定が間違っている場合、アプリ管理に戻すまで動画処理が失敗する可能性があります。",
@@ -658,7 +664,9 @@
     "downloadingYtdlp": "yt-dlp をダウンロード中...",
     "downloading": "ダウンロード中",
     "extracting": "展開中...",
-    "verifying": "検証中..."
+    "verifying": "検証中...",
+    "customPathBrowseFolder": "フォルダー",
+    "customPathFolderDialogTitle": "FFmpeg を含むフォルダーを選択"
   },
   "network": {
     "title": "ネットワーク＆認証",

@@ -175,6 +175,7 @@
   },
   "queue": {
     "title": "Cola",
+    "ageRestrictedLowResWarning": "Descarga completada, pero YouTube limitó este video a una resolución baja (restricción de edad). Activa las cookies en Ajustes → Red (Modo cookie) para desbloquear resoluciones más altas.",
     "pending": "{{count}} pendiente",
     "clearDone": "Borrar completadas",
     "remove": "Eliminar de la cola",

@@ -80,6 +80,7 @@
   },
   "queue": {
     "title": "Hàng đợi",
+    "ageRestrictedLowResWarning": "Tải xuống hoàn tất, nhưng YouTube chỉ cho phép độ phân giải thấp (do giới hạn độ tuổi). Bật cookie trong Cài đặt → Mạng (Chế độ cookie) để mở khóa độ phân giải cao hơn.",
     "pending": "{{count}} đang chờ",
     "clearDone": "Xóa đã xong",
     "loadingInfo": "Đang tải thông tin...",

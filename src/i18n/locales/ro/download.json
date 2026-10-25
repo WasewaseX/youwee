@@ -175,6 +175,7 @@
   },
   "queue": {
     "title": "coadă",
+    "ageRestrictedLowResWarning": "Descărcarea s-a încheiat, dar YouTube a limitat acest videoclip la o rezoluție scăzută (restricție de vârstă). Activează cookie-urile în Setări → Rețea (Mod cookie) pentru a debloca rezoluții mai mari.",
     "pending": "{{count}} în așteptare",
     "clearDone": "Clar gata",
     "remove": "Scoateți din coadă",

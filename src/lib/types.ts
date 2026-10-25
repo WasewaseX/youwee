@@ -187,6 +187,8 @@ export interface DownloadItem {
   completedFormat?: string; // e.g. "mp4"
   completedFilepath?: string; // Absolute path of downloaded file
   completedHistoryId?: string; // Related history entry id after completion
+  completedWarning?: string; // Raw backend warning (e.g. quality silently capped)
+  completedWarningCode?: string; // Stable code for localized warning rendering
   // Source detection
   extractor?: string; // e.g. "youtube", "tiktok", "instagram"
   // Settings snapshot when item was added to queue
@@ -390,6 +392,9 @@ export interface DownloadProgress {
   error_message?: string;
   error_code?: string;
   error_params?: Record<string, string | number | boolean>;
+  // Non-fatal warning when the download finished with limited quality
+  warning?: string;
+  warning_code?: string;
   history_id?: string; // Related history entry id when available
   filepath?: string; // Final file path when status is 'finished'
   // For live streams (no percentage available)
@@ -1299,7 +1304,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
 // yt-dlp Channel Types
 // ============================================
 
-export type DependencySource = 'auto' | 'app' | 'system';
+export type DependencySource = 'auto' | 'app' | 'system' | 'custom';
 
 export type YtdlpChannel = 'bundled' | 'stable' | 'nightly';
 

@@ -80,6 +80,7 @@
   },
   "queue": {
     "title": "Sıra",
+    "ageRestrictedLowResWarning": "İndirme tamamlandı, ancak YouTube bu videoyu düşük çözünürlükle sınırladı (yaş kısıtlaması). Daha yüksek çözünürlükler için Ayarlar → Ağ (Çerez Modu) içinden çerezleri etkinleştirin.",
     "pending": "{{count}} bekliyor",
     "clearDone": "Tamamlananları temizle",
     "loadingInfo": "Bilgi yükleniyor...",
