@@ -1,11 +1,12 @@
 use crate::services::{
     check_deno_internal, check_deno_update_internal, check_ffmpeg_internal,
     check_ffmpeg_update_internal, check_gallerydl_internal, get_all_ytdlp_versions,
-    get_channel_api_url, get_deno_download_url, get_ffmpeg_download_info, get_ffmpeg_path,
-    get_ffmpeg_source, get_latest_ffmpeg_release_info, get_ytdlp_channel,
-    get_ytdlp_channel_download_url, get_ytdlp_download_info, get_ytdlp_source,
-    get_ytdlp_version_internal, parse_ffmpeg_version, set_ffmpeg_source, set_ytdlp_channel,
-    set_ytdlp_source, system_ffmpeg_upgrade_message, system_ytdlp_upgrade_message, verify_sha256,
+    get_channel_api_url, get_deno_download_url, get_ffmpeg_custom_path_setting,
+    get_ffmpeg_download_info, get_ffmpeg_path, get_ffmpeg_source, get_latest_ffmpeg_release_info,
+    get_ytdlp_channel, get_ytdlp_channel_download_url, get_ytdlp_download_info, get_ytdlp_source,
+    get_ytdlp_version_internal, is_working_ffmpeg, parse_ffmpeg_version, resolve_custom_binary,
+    set_ffmpeg_custom_path_setting, set_ffmpeg_source, set_ytdlp_channel, set_ytdlp_source,
+    system_ffmpeg_upgrade_message, system_ytdlp_upgrade_message, verify_sha256,
     write_app_ffmpeg_release_version, DenoUpdateInfo, FfmpegUpdateInfo,
 };
 use crate::types::{
@@ -517,6 +518,36 @@ pub async fn get_ffmpeg_source_cmd(app: AppHandle) -> Result<String, String> {
 pub async fn set_ffmpeg_source_cmd(app: AppHandle, source: String) -> Result<(), String> {
     let source_enum = DependencySource::from_str(&source);
     set_ffmpeg_source(&app, &source_enum).await
+}
+
+#[tauri::command]
+pub async fn get_ffmpeg_custom_path_cmd(app: AppHandle) -> Result<Option<String>, String> {
+    Ok(get_ffmpeg_custom_path_setting(&app).await)
+}
+
+#[tauri::command]
+pub async fn set_ffmpeg_custom_path_cmd(app: AppHandle, path: String) -> Result<(), String> {
+    // A non-empty path must resolve to a binary that actually runs. Rejecting
+    // here gives the user immediate feedback instead of silently falling back
+    // at download time.
+    if !path.trim().is_empty() {
+        match resolve_custom_binary(Some(path.clone())) {
+            Some(binary) => {
+                if !is_working_ffmpeg(&binary).await {
+                    return Err(format!(
+                        "The selected FFmpeg at {} exists but did not run correctly. Please pick a working ffmpeg binary (or a folder containing one).",
+                        binary.to_string_lossy()
+                    ));
+                }
+            }
+            None => {
+                return Err(
+                    "The selected path does not contain an ffmpeg binary. Pick the ffmpeg executable itself, or a folder that contains it.".to_string(),
+                );
+            }
+        }
+    }
+    set_ffmpeg_custom_path_setting(&app, &path).await
 }
 
 #[tauri::command]
