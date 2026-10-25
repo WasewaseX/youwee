@@ -175,6 +175,7 @@
   },
   "queue": {
     "title": "Navbat",
+    "ageRestrictedLowResWarning": "Yuklab olish tugadi, ammo YouTube videoni past sifat bilan cheklab qo'ydi (yosh chegarasi). Yuqori sifatlarni ochish uchun Sozlamalar → Tarmoq (Cookie rejimi) bo'limida cookie'larni yoqing.",
     "pending": "{{count}} kutilmoqda",
     "clearDone": "Tugallanganlarni tozalash",
     "remove": "Navbatdan olib tashlash",

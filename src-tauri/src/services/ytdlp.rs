@@ -370,11 +370,22 @@ pub struct YtdlpOutput {
     pub stdout: String,
     pub stderr: String,
     pub success: bool,
+    /// Non-fatal findings detected on the success path, such as a download
+    /// that completed but was silently limited to a low-resolution muxed
+    /// format by YouTube age-gating.
+    pub warnings: Vec<String>,
+}
+
+fn success_warnings(stderr: &str, format_selector: Option<&str>) -> Vec<String> {
+    detect_age_restricted_silent_downgrade_from_stderr(stderr, format_selector)
+        .map(|downgrade| vec![downgrade.message])
+        .unwrap_or_default()
 }
 
 /// Helper to run yt-dlp command and get output with stderr
 pub async fn run_ytdlp_with_stderr(app: &AppHandle, args: &[&str]) -> Result<YtdlpOutput, String> {
     let source = get_ytdlp_source(app).await;
+    let format_selector = extract_format_selector(args);
 
     // Try to get yt-dlp path (prioritizes user-updated version)
     if let Some((binary_path, _)) = get_ytdlp_path(app).await {
@@ -386,10 +397,20 @@ pub async fn run_ytdlp_with_stderr(app: &AppHandle, args: &[&str]) -> Result<Ytd
             BackendError::from_message(format!("Failed to run yt-dlp: {}", e)).to_wire_string()
         })?;
 
+        let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        let success = output.status.success();
+        let warnings = if success {
+            success_warnings(&stderr, format_selector.as_deref())
+        } else {
+            Vec::new()
+        };
+
         return Ok(YtdlpOutput {
-            stdout: String::from_utf8_lossy(&output.stdout).to_string(),
-            stderr: String::from_utf8_lossy(&output.stderr).to_string(),
-            success: output.status.success(),
+            stdout,
+            stderr,
+            success,
+            warnings,
         });
     }
 
@@ -436,10 +457,17 @@ pub async fn run_ytdlp_with_stderr(app: &AppHandle, args: &[&str]) -> Result<Ytd
                 }
             }
 
+            let warnings = if success {
+                success_warnings(&stderr, format_selector.as_deref())
+            } else {
+                Vec::new()
+            };
+
             Ok(YtdlpOutput {
                 stdout,
                 stderr,
                 success,
+                warnings,
             })
         }
         Err(_) => {
@@ -453,10 +481,20 @@ pub async fn run_ytdlp_with_stderr(app: &AppHandle, args: &[&str]) -> Result<Ytd
                         .to_wire_string()
                 })?;
 
+                let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+                let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+                let success = output.status.success();
+                let warnings = if success {
+                    success_warnings(&stderr, format_selector.as_deref())
+                } else {
+                    Vec::new()
+                };
+
                 Ok(YtdlpOutput {
-                    stdout: String::from_utf8_lossy(&output.stdout).to_string(),
-                    stderr: String::from_utf8_lossy(&output.stderr).to_string(),
-                    success: output.status.success(),
+                    stdout,
+                    stderr,
+                    success,
+                    warnings,
                 })
             } else {
                 Err(BackendError::from_message(
@@ -649,6 +687,184 @@ pub fn is_age_restricted_error(stderr: &str) -> bool {
         || normalized.contains("age restricted")
         || normalized.contains("inappropriate for some users")
         || normalized.contains("age-restriction")
+}
+
+/// Legacy muxed itags YouTube serves when the format list collapses for
+/// anonymous clients. 17 = 144p 3gp, 36 = 180p 3gp, 18 = 360p mp4, 22 = 720p
+/// mp4. When yt-dlp succeeds but every selected format is one of these, the
+/// download went through with heavily limited quality.
+pub const AGE_GATE_MUXED_ITAGS: &[&str] = &["17", "18", "22", "36"];
+
+/// Outcome of a download that succeeded at a lower resolution than requested.
+pub struct SilentDowngrade {
+    /// Actual resolution label, e.g. "360p", for display on the queue item.
+    pub resolution: String,
+    /// User-facing guidance pointing to Cookie Mode.
+    pub message: String,
+}
+
+/// Extract the requested format selector from yt-dlp args.
+///
+/// Looks for `-f <value>`, `--format <value>`, or their `=` variants and
+/// returns the last occurrence, matching yt-dlp's own override semantics.
+pub fn extract_format_selector(args: &[&str]) -> Option<String> {
+    let mut selector = None;
+    let mut index = 0;
+    while index < args.len() {
+        let arg = args[index];
+        if arg == "-f" || arg == "--format" {
+            if let Some(value) = args.get(index + 1) {
+                selector = Some(value.to_string());
+            }
+            index += 2;
+            continue;
+        }
+        if let Some(value) = arg.strip_prefix("--format=").or(arg.strip_prefix("-f=")) {
+            selector = Some(value.to_string());
+        }
+        index += 1;
+    }
+    selector
+}
+
+/// Return the tightest explicit `height<=N` cap in a format selector.
+pub fn requested_height_cap(selector: &str) -> Option<u32> {
+    let marker = "height<=";
+    let mut cap = None;
+    let mut search_from = 0;
+    while let Some(offset) = selector[search_from..].find(marker) {
+        let value_start = search_from + offset + marker.len();
+        let digits: String = selector[value_start..]
+            .chars()
+            .take_while(|c| c.is_ascii_digit())
+            .collect();
+        if let Ok(value) = digits.parse::<u32>() {
+            cap = Some(cap.map_or(value, |current: u32| current.min(value)));
+        }
+        search_from = value_start + digits.len().max(1);
+    }
+    cap
+}
+
+/// Whether a format selector can select a video stream.
+///
+/// Audio-only selectors such as `bestaudio/best` never pick a video stream, so
+/// a low-resolution muxed fallback is not a resolution downgrade for them.
+pub fn is_video_format_request(selector: &str) -> bool {
+    selector.contains("bestvideo") || selector.contains("best[")
+}
+
+/// Parse the `[info] <id>: Downloading N format(s): a+b` line into format ids.
+///
+/// Returns `None` for any line that is not a format-selection report. Both the
+/// single-format (`18`) and merged (`137+140`) shapes are handled.
+pub fn extract_selected_format_ids(stderr_line: &str) -> Option<Vec<String>> {
+    let marker = "format(s): ";
+    let position = stderr_line.find(marker)?;
+    let ids_part = stderr_line[position + marker.len()..].trim();
+    if ids_part.is_empty() {
+        return None;
+    }
+
+    let ids: Vec<String> = ids_part
+        .split(['+', ',', ' '])
+        .map(str::trim)
+        .filter(|id| !id.is_empty())
+        .map(str::to_string)
+        .collect();
+
+    if ids.is_empty() {
+        None
+    } else {
+        Some(ids)
+    }
+}
+
+/// Detect a successful download that was silently limited to a low-resolution
+/// muxed format because YouTube collapsed the format list (typically
+/// age-restriction without cookies).
+///
+/// `selected_ids_per_video` holds one entry per downloaded video. The warning
+/// only fires when *every* video resolved to a legacy muxed itag: normal
+/// videos resolve to adaptive pairs (e.g. `137+140`) even at 360p. When the
+/// user explicitly requested 360p or lower, or the request is audio-only, no
+/// warning is produced.
+pub fn detect_age_restricted_silent_downgrade(
+    selected_ids_per_video: &[Vec<String>],
+    format_selector: Option<&str>,
+) -> Option<SilentDowngrade> {
+    if selected_ids_per_video.is_empty() {
+        return None;
+    }
+
+    let mut all_muxed = true;
+    let mut saw_360p_or_lower = false;
+    let mut saw_720p = false;
+    for ids in selected_ids_per_video {
+        if ids.is_empty() {
+            all_muxed = false;
+            break;
+        }
+        for id in ids {
+            if AGE_GATE_MUXED_ITAGS.contains(&id.as_str()) {
+                if id == "22" {
+                    saw_720p = true;
+                } else {
+                    saw_360p_or_lower = true;
+                }
+            } else {
+                all_muxed = false;
+                break;
+            }
+        }
+        if !all_muxed {
+            break;
+        }
+    }
+
+    if !all_muxed {
+        return None;
+    }
+
+    if let Some(selector) = format_selector {
+        if !is_video_format_request(selector) {
+            return None;
+        }
+        if let Some(cap) = requested_height_cap(selector) {
+            if cap <= 360 {
+                return None;
+            }
+        }
+    }
+
+    let resolution = if saw_720p && !saw_360p_or_lower {
+        "720p"
+    } else {
+        "360p"
+    };
+
+    Some(SilentDowngrade {
+        resolution: resolution.to_string(),
+        message: format!(
+            "Download finished, but YouTube only served a low-resolution format ({}). \
+This can happen with age-restricted videos when cookies are disabled \
+\u{2014} enable cookies in Settings \u{2192} Network (Cookie Mode) to unlock higher resolutions.",
+            resolution
+        ),
+    })
+}
+
+/// Convenience wrapper that scans a full yt-dlp stderr for format-selection
+/// lines before running the silent-downgrade detection.
+pub fn detect_age_restricted_silent_downgrade_from_stderr(
+    stderr: &str,
+    format_selector: Option<&str>,
+) -> Option<SilentDowngrade> {
+    let selected: Vec<Vec<String>> = stderr
+        .lines()
+        .filter_map(extract_selected_format_ids)
+        .collect();
+    detect_age_restricted_silent_downgrade(&selected, format_selector)
 }
 
 /// Helper to run yt-dlp command and get JSON output
@@ -1315,6 +1531,130 @@ mod tests {
             .message()
             .to_lowercase()
             .contains("age-restricted video detected"));
+    }
+
+    #[test]
+    fn extract_format_selector_reads_dash_f_value() {
+        let args = [
+            "--newline",
+            "-f",
+            "bestvideo+bestaudio/best",
+            "https://x.test",
+        ];
+
+        assert_eq!(
+            extract_format_selector(&args).as_deref(),
+            Some("bestvideo+bestaudio/best")
+        );
+        assert_eq!(extract_format_selector(&["--newline"]), None);
+    }
+
+    #[test]
+    fn extract_format_selector_reads_inline_forms_and_last_wins() {
+        let args = ["-f=first", "--format=second"];
+
+        assert_eq!(extract_format_selector(&args).as_deref(), Some("second"));
+    }
+
+    #[test]
+    fn requested_height_cap_finds_tightest_bound() {
+        let selector = "bestvideo[height<=1080][ext=mp4]+bestaudio/best[height<=720]/best";
+
+        assert_eq!(requested_height_cap(selector), Some(720));
+        assert_eq!(requested_height_cap("bestvideo+bestaudio/best"), None);
+    }
+
+    #[test]
+    fn extract_selected_format_ids_parses_info_lines() {
+        assert_eq!(
+            extract_selected_format_ids("[info] aBcD1234: Downloading 1 format(s): 18"),
+            Some(vec!["18".to_string()])
+        );
+        assert_eq!(
+            extract_selected_format_ids("[info] aBcD1234: Downloading 2 format(s): 137+140"),
+            Some(vec!["137".to_string(), "140".to_string()])
+        );
+        assert_eq!(
+            extract_selected_format_ids("[download] Destination: video.mp4"),
+            None
+        );
+    }
+
+    #[test]
+    fn silent_downgrade_regression_warns_for_muxed_360p_success() {
+        // Regression for the #128 success path: yt-dlp exits 0 but the only
+        // format served to the anonymous client is the 360p muxed itag.
+        let stderr = "[info] aBcD1234: Downloading 1 format(s): 18\n\
+                      [download] Destination: /tmp/video.mp4\n\
+                      [download] 100% of 12.34MiB in 00:00:05";
+
+        let downgrade = detect_age_restricted_silent_downgrade_from_stderr(
+            stderr,
+            Some("bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best"),
+        )
+        .expect("silent 360p downgrade should be detected");
+
+        assert_eq!(downgrade.resolution, "360p");
+        assert!(downgrade.message.contains("360p"));
+        assert!(downgrade.message.to_lowercase().contains("cookie"));
+    }
+
+    #[test]
+    fn silent_downgrade_ignores_adaptive_format_selection() {
+        let stderr = "[info] aBcD1234: Downloading 2 format(s): 137+140";
+
+        assert!(detect_age_restricted_silent_downgrade_from_stderr(stderr, None).is_none());
+    }
+
+    #[test]
+    fn silent_downgrade_respects_requested_360p() {
+        let stderr = "[info] aBcD1234: Downloading 1 format(s): 18";
+
+        assert!(detect_age_restricted_silent_downgrade_from_stderr(
+            stderr,
+            Some("bestvideo[height<=360]+bestaudio/best[height<=360]/best"),
+        )
+        .is_none());
+    }
+
+    #[test]
+    fn silent_downgrade_ignores_audio_only_requests() {
+        let stderr = "[info] aBcD1234: Downloading 1 format(s): 18";
+
+        assert!(detect_age_restricted_silent_downgrade_from_stderr(
+            stderr,
+            Some("bestaudio[ext=m4a]/bestaudio/best"),
+        )
+        .is_none());
+    }
+
+    #[test]
+    fn silent_downgrade_requires_every_video_to_be_limited() {
+        // Playlist where one video resolved normally: no warning.
+        let mixed = [
+            vec!["18".to_string()],
+            vec!["137".to_string(), "140".to_string()],
+        ];
+
+        assert!(detect_age_restricted_silent_downgrade(&mixed, None).is_none());
+
+        let limited = [vec!["18".to_string()], vec!["18".to_string()]];
+        let downgrade =
+            detect_age_restricted_silent_downgrade(&limited, Some("bestvideo+bestaudio/best"))
+                .expect("fully limited playlist should warn");
+
+        assert_eq!(downgrade.resolution, "360p");
+    }
+
+    #[test]
+    fn silent_downgrade_reports_720p_hint_for_itag_22() {
+        let limited = [vec!["22".to_string()]];
+
+        let downgrade =
+            detect_age_restricted_silent_downgrade(&limited, Some("bestvideo+bestaudio/best"))
+                .expect("single muxed 720p selection should warn");
+
+        assert_eq!(downgrade.resolution, "720p");
     }
 
     #[test]

@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -504,6 +505,17 @@ export function UniversalQueueItem({
               {item.completedFormat && (
                 <span className="text-[11px] px-1.5 py-0.5 rounded bg-muted/50 text-muted-foreground uppercase">
                   {item.completedFormat}
+                </span>
+              )}
+              {item.completedWarning && (
+                <span
+                  className="inline-flex items-start gap-1 text-[11px] text-amber-600 dark:text-amber-400 line-clamp-2"
+                  title={item.completedWarning}
+                >
+                  <AlertTriangle className="w-3 h-3 shrink-0 mt-0.5" />
+                  {item.completedWarningCode === 'YT_AGE_RESTRICTED_LOW_RES'
+                    ? t('queue.ageRestrictedLowResWarning')
+                    : item.completedWarning}
                 </span>
               )}
             </>

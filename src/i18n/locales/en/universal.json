@@ -80,6 +80,7 @@
   },
   "queue": {
     "title": "Queue",
+    "ageRestrictedLowResWarning": "Download finished, but YouTube limited this video to a low resolution (age restriction). Enable cookies in Settings → Network (Cookie Mode) to unlock higher resolutions.",
     "pending": "{{count}} pending",
     "clearDone": "Clear done",
     "loadingInfo": "Loading info...",

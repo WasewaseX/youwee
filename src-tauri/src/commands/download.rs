@@ -25,10 +25,11 @@ use crate::database::ensure_collection_for_download_in_db;
 use crate::database::update_history_download;
 use crate::services::{
     add_safe_filename_args, build_cookie_args, build_proxy_args, build_site_header_args,
-    build_youtube_extractor_args, build_ytdlp_advanced_args, enqueue_post_download_workflow,
-    get_deno_path, get_ffmpeg_path, get_ytdlp_path, get_ytdlp_source, is_upcoming_live_error,
-    redact_ytdlp_advanced_args, resolve_download_workflow_snapshot, run_ytdlp_with_stderr,
-    system_ytdlp_not_found_message, YtdlpAdvancedOption,
+    build_youtube_extractor_args, build_ytdlp_advanced_args,
+    detect_age_restricted_silent_downgrade, enqueue_post_download_workflow,
+    extract_selected_format_ids, get_deno_path, get_ffmpeg_path, get_ytdlp_path, get_ytdlp_source,
+    is_upcoming_live_error, redact_ytdlp_advanced_args, resolve_download_workflow_snapshot,
+    run_ytdlp_with_stderr, system_ytdlp_not_found_message, YtdlpAdvancedOption,
 };
 use crate::types::{
     BackendError, DependencySource, DownloadProgress, PluginWorkflowStepSnapshot,
@@ -41,6 +42,10 @@ use crate::utils::{
 pub static CANCEL_FLAG: AtomicBool = AtomicBool::new(false);
 
 const RECENT_OUTPUT_LIMIT: usize = 30;
+
+/// Stable warning code attached to finished downloads whose quality was
+/// silently capped to a low-resolution muxed format (age-gating).
+const AGE_RESTRICTED_LOW_RES_WARNING_CODE: &str = "YT_AGE_RESTRICTED_LOW_RES";
 
 fn extract_time_range(download_sections: &Option<String>) -> Option<String> {
     download_sections.as_ref().and_then(|s| {
@@ -1352,7 +1357,7 @@ pub async fn download_video(
         "--progress".to_string(),
         "--no-warnings".to_string(),
         "-f".to_string(),
-        format_string,
+        format_string.clone(),
         "--paths".to_string(),
         output_path_arg(&sanitized_path),
         "-o".to_string(),
@@ -1678,6 +1683,7 @@ pub async fn download_video(
             process,
             quality,
             format,
+            format_string.clone(),
             url,
             should_log_stderr,
             title,
@@ -1784,6 +1790,11 @@ pub async fn download_video(
             let mut printed_filepaths: Vec<String> = Vec::new();
             let mut observed_filepaths: Vec<String> = Vec::new();
             let mut recent_output: VecDeque<String> = VecDeque::new();
+            // Format ids yt-dlp actually selected, one entry per downloaded
+            // video. Captured as lines arrive because the [info] selection
+            // line scrolls out of the recent-output ring buffer on long
+            // downloads. Used to detect silent low-resolution downgrades.
+            let mut selected_format_ids: Vec<Vec<String>> = Vec::new();
 
             let quality_display = match quality.as_str() {
                 "8k" => Some("8K".to_string()),
@@ -1924,6 +1935,8 @@ pub async fn download_video(
                                 filepath: None,
                                 downloaded_size,
                                 elapsed_time,
+                                warning: None,
+                                warning_code: None,
                             };
                             app.emit("download-progress", progress).ok();
                         }
@@ -1932,6 +1945,9 @@ pub async fn download_video(
                         let stderr_line = decode_process_output(&bytes);
                         let stderr_line = stderr_line.trim().to_string();
                         push_recent_output(&mut recent_output, &stderr_line);
+                        if let Some(ids) = extract_selected_format_ids(&stderr_line) {
+                            selected_format_ids.push(ids);
+                        }
                         if let Some(filepath) = parse_ytdlp_output_filepath(&stderr_line) {
                             push_unique_filepath(&mut observed_filepaths, &filepath);
                         }
@@ -1965,6 +1981,8 @@ pub async fn download_video(
                                 filepath: None,
                                 downloaded_size,
                                 elapsed_time,
+                                warning: None,
+                                warning_code: None,
                             };
                             app.emit("download-progress", progress).ok();
                         }
@@ -2138,6 +2156,20 @@ pub async fn download_video(
                                 }
                             }
 
+                            // Surface a silent quality downgrade (typically age-gating
+                            // limiting the format list to a 360p muxed itag) without
+                            // failing the finished download.
+                            let downgrade_warning = detect_age_restricted_silent_downgrade(
+                                &selected_format_ids,
+                                Some(&format_string),
+                            );
+                            let downgrade_resolution =
+                                downgrade_warning.as_ref().map(|d| d.resolution.clone());
+                            if let Some(message) = downgrade_warning.as_ref() {
+                                add_log_internal("warning", &message.message, None, Some(&url))
+                                    .ok();
+                            }
+
                             let progress = DownloadProgress {
                                 id: id.clone(),
                                 percent: 100.0,
@@ -2148,7 +2180,10 @@ pub async fn download_video(
                                 playlist_index: current_index,
                                 playlist_count: total_count,
                                 filesize: reported_filesize,
-                                resolution: quality_display.clone(),
+                                // Show the actual resolution when YouTube only
+                                // served the low-res muxed format.
+                                resolution: downgrade_resolution
+                                    .or_else(|| quality_display.clone()),
                                 format_ext: Some(format.clone()),
                                 error_message: None,
                                 error_code: None,
@@ -2157,6 +2192,10 @@ pub async fn download_video(
                                 filepath: final_filepath.clone(),
                                 downloaded_size: None,
                                 elapsed_time: None,
+                                warning: downgrade_warning.as_ref().map(|d| d.message.clone()),
+                                warning_code: downgrade_warning
+                                    .as_ref()
+                                    .map(|_| AGE_RESTRICTED_LOW_RES_WARNING_CODE.to_string()),
                             };
                             app.emit("download-progress", progress).ok();
                             for (index, filepath) in output_paths.iter().enumerate() {
@@ -2223,6 +2262,8 @@ pub async fn download_video(
                                 filepath: None,
                                 downloaded_size: None,
                                 elapsed_time: None,
+                                warning: None,
+                                warning_code: None,
                             };
                             app.emit("download-progress", progress).ok();
 
@@ -2341,6 +2382,7 @@ pub async fn download_video(
                 process,
                 quality,
                 format,
+                format_string,
                 url,
                 should_log_stderr,
                 title,
@@ -2369,6 +2411,7 @@ async fn handle_tokio_download(
     mut process: tokio::process::Child,
     quality: String,
     format: String,
+    format_string: String,
     url: String,
     should_log_stderr: bool,
     title: Option<String>,
@@ -2404,6 +2447,9 @@ async fn handle_tokio_download(
     let mut printed_filepaths: Vec<String> = Vec::new();
     let recent_output = Arc::new(Mutex::new(VecDeque::new()));
     let observed_filepaths = Arc::new(Mutex::new(Vec::new()));
+    // Shared with the stderr reader task, which sees the format-selection
+    // lines before the download finishes.
+    let selected_format_ids = Arc::new(Mutex::new(Vec::new()));
 
     let quality_display = match quality.as_str() {
         "8k" => Some("8K".to_string()),
@@ -2424,6 +2470,7 @@ async fn handle_tokio_download(
     let stderr_url = url.clone();
     let stderr_recent_output = recent_output.clone();
     let stderr_observed_filepaths = observed_filepaths.clone();
+    let stderr_selected_format_ids = selected_format_ids.clone();
     let stderr_task = if let Some(stderr_handle) = stderr {
         Some(tokio::spawn(async move {
             let mut stderr_reader = BufReader::new(stderr_handle);
@@ -2447,6 +2494,11 @@ async fn handle_tokio_download(
                 if let Some(filepath) = parse_ytdlp_output_filepath(&line) {
                     if let Ok(mut paths) = stderr_observed_filepaths.lock() {
                         push_unique_filepath(&mut paths, &filepath);
+                    }
+                }
+                if let Some(ids) = extract_selected_format_ids(&line) {
+                    if let Ok(mut ids_guard) = stderr_selected_format_ids.lock() {
+                        ids_guard.push(ids);
                     }
                 }
 
@@ -2473,6 +2525,8 @@ async fn handle_tokio_download(
                         filepath: None,
                         downloaded_size,
                         elapsed_time,
+                        warning: None,
+                        warning_code: None,
                     };
                     stderr_app.emit("download-progress", progress).ok();
                 }
@@ -2547,6 +2601,8 @@ async fn handle_tokio_download(
                 filepath: None,
                 downloaded_size,
                 elapsed_time,
+                warning: None,
+                warning_code: None,
             };
             app.emit("download-progress", progress).ok();
         }
@@ -2774,6 +2830,19 @@ async fn handle_tokio_download(
             }
         }
 
+        // Surface a silent quality downgrade (typically age-gating limiting
+        // the format list to a 360p muxed itag) without failing the download.
+        let selected_ids = selected_format_ids
+            .lock()
+            .map(|guard| guard.clone())
+            .unwrap_or_default();
+        let downgrade_warning =
+            detect_age_restricted_silent_downgrade(&selected_ids, Some(&format_string));
+        let downgrade_resolution = downgrade_warning.as_ref().map(|d| d.resolution.clone());
+        if let Some(message) = downgrade_warning.as_ref() {
+            add_log_internal("warning", &message.message, None, Some(&url)).ok();
+        }
+
         let progress = DownloadProgress {
             id: id.clone(),
             percent: 100.0,
@@ -2784,7 +2853,9 @@ async fn handle_tokio_download(
             playlist_index: current_index,
             playlist_count: total_count,
             filesize: reported_filesize,
-            resolution: quality_display.clone(),
+            // Show the actual resolution when YouTube only served the
+            // low-res muxed format.
+            resolution: downgrade_resolution.or_else(|| quality_display.clone()),
             format_ext: Some(format.clone()),
             error_message: None,
             error_code: None,
@@ -2793,6 +2864,10 @@ async fn handle_tokio_download(
             filepath: final_filepath.clone(),
             downloaded_size: None,
             elapsed_time: None,
+            warning: downgrade_warning.as_ref().map(|d| d.message.clone()),
+            warning_code: downgrade_warning
+                .as_ref()
+                .map(|_| AGE_RESTRICTED_LOW_RES_WARNING_CODE.to_string()),
         };
         app.emit("download-progress", progress).ok();
         for (index, filepath) in output_paths.iter().enumerate() {
@@ -2859,6 +2934,8 @@ async fn handle_tokio_download(
             filepath: None,
             downloaded_size: None,
             elapsed_time: None,
+            warning: None,
+            warning_code: None,
         };
         app.emit("download-progress", progress).ok();
 

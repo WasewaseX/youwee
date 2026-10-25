@@ -175,6 +175,7 @@
   },
   "queue": {
     "title": "Fila",
+    "ageRestrictedLowResWarning": "Download concluído, mas o YouTube limitou este vídeo a uma resolução baixa (restrição de idade). Ative os cookies em Configurações → Rede (Modo cookie) para desbloquear resoluções mais altas.",
     "pending": "{{count}} pendentes",
     "clearDone": "Limpar concluídos",
     "remove": "Remover da fila",

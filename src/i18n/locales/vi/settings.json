@@ -616,6 +616,12 @@
     "sourceSystemMac": "Hệ thống (Homebrew)",
     "sourceSystemWindows": "Hệ thống (PATH)",
     "sourceSystemLinux": "Hệ thống (trình quản lý gói)",
+    "sourceCustomPath": "Đường dẫn tùy chỉnh",
+    "customPathDialogTitle": "Chọn tệp thực thi FFmpeg",
+    "customPathPlaceholder": "vd: C:\\ffmpeg\\bin\\ffmpeg.exe hoặc /usr/local/bin/ffmpeg",
+    "customPathBrowse": "Duyệt",
+    "customPathClear": "Xóa",
+    "customPathHint": "Dùng bản FFmpeg di động. Đường dẫn tệp được dùng trực tiếp; thư mục sẽ được tìm kiếm ffmpeg bên trong. Tệp được chọn sẽ được kiểm tra bằng cách chạy thử trước khi sử dụng.",
     "confirmSwitchSystemTitle": "Chuyển sang dependency hệ thống?",
     "confirmSwitchSystemYtdlp": "Chuyển nguồn yt-dlp sang Hệ thống?\n\nNếu yt-dlp hệ thống thiếu hoặc cấu hình sai, tải video/lấy metadata có thể lỗi cho đến khi bạn chuyển lại sang Ứng dụng quản lý.",
     "confirmSwitchSystemFfmpeg": "Chuyển nguồn FFmpeg sang Hệ thống?\n\nNếu FFmpeg hệ thống thiếu hoặc cấu hình sai, xử lý video có thể lỗi cho đến khi bạn chuyển lại sang Ứng dụng quản lý.",
@@ -658,7 +664,9 @@
     "downloadingYtdlp": "Đang tải yt-dlp...",
     "downloading": "Đang tải",
     "extracting": "Đang giải nén...",
-    "verifying": "Đang xác minh..."
+    "verifying": "Đang xác minh...",
+    "customPathBrowseFolder": "Thư mục",
+    "customPathFolderDialogTitle": "Chọn thư mục chứa FFmpeg"
   },
   "network": {
     "title": "Mạng & Xác thực",

@@ -346,6 +346,8 @@ fn mark_failed_download_recovered(
         filepath: Some(filepath.to_string()),
         downloaded_size: None,
         elapsed_time: None,
+        warning: None,
+        warning_code: None,
     };
     app.emit("download-progress", progress).ok();
 }

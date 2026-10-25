@@ -616,6 +616,12 @@
     "sourceSystemMac": "Sistem (Homebrew)",
     "sourceSystemWindows": "Sistem (PATH)",
     "sourceSystemLinux": "Sistem (Manager de pachete)",
+    "sourceCustomPath": "Cale personalizată",
+    "customPathDialogTitle": "Alege executabilul FFmpeg",
+    "customPathPlaceholder": "ex. C:\\ffmpeg\\bin\\ffmpeg.exe sau /usr/local/bin/ffmpeg",
+    "customPathBrowse": "Răsfoiește",
+    "customPathClear": "Șterge",
+    "customPathHint": "Folosește o versiune portabilă FFmpeg. O cale de fișier este folosită direct; într-un dosar se caută ffmpeg. Fișierul ales este verificat prin rulare înainte de utilizare.",
     "confirmSwitchSystemTitle": "Treci la dependența de sistem?",
     "confirmSwitchSystemYtdlp": "Comutați sursa yt-dlp la System?\n\nDacă sistemul yt-dlp lipsește sau este configurat greșit, descărcările/metadatele pot eșua până când reveniți la aplicația gestionată.",
     "confirmSwitchSystemFfmpeg": "Comutați sursa FFmpeg la System?\n\nDacă sistemul FFmpeg lipsește sau este configurat greșit, procesarea video poate eșua până când reveniți la aplicația gestionată.",
@@ -658,7 +664,9 @@
     "downloadingYtdlp": "Se descarcă yt-dlp...",
     "downloading": "Descărcare",
     "extracting": "Se extrage...",
-    "verifying": "Se verifică..."
+    "verifying": "Se verifică...",
+    "customPathBrowseFolder": "Dosar",
+    "customPathFolderDialogTitle": "Alegeți dosarul care conține FFmpeg"
   },
   "network": {
     "title": "Rețea și autentificare",
