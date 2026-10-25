@@ -1,5 +1,6 @@
 import { faGithub } from '@fortawesome/free-brands-svg-icons';
 import { faGlobe as faGlobeIcon } from '@fortawesome/free-solid-svg-icons';
+import { open } from '@tauri-apps/plugin-dialog';
 import {
   AlertCircle,
   Check,
@@ -45,6 +46,8 @@ export function DependenciesSection({ highlightId }: DependenciesSectionProps) {
     tool: 'ytdlp' | 'ffmpeg';
     source: Exclude<DependencySource, 'auto'>;
   } | null>(null);
+  // Draft for the custom FFmpeg path input; persisted on blur / Enter only.
+  const [ffmpegPathDraft, setFfmpegPathDraft] = useState<string | null>(null);
   const { settings, updateUseActualPlayerJs } = useDownload();
   const {
     // yt-dlp
@@ -75,6 +78,7 @@ export function DependenciesSection({ highlightId }: DependenciesSectionProps) {
     downloadChannelBinary,
     // FFmpeg
     ffmpegSource,
+    ffmpegCustomPath,
     ffmpegStatus,
     ffmpegLoading,
     ffmpegDownloading,
@@ -86,6 +90,7 @@ export function DependenciesSection({ highlightId }: DependenciesSectionProps) {
     downloadFfmpeg,
     ffmpegDownloadProgress,
     setFfmpegSource,
+    setFfmpegCustomPath,
     checkFfmpeg,
     // Deno
     denoStatus,
@@ -150,7 +155,8 @@ export function DependenciesSection({ highlightId }: DependenciesSectionProps) {
   const handleFfmpegSourceChange = async (nextSource: Exclude<DependencySource, 'auto'>) => {
     if (
       (nextSource === 'system' && ffmpegSource === 'system') ||
-      (nextSource === 'app' && ffmpegSource === 'app')
+      (nextSource === 'app' && ffmpegSource === 'app') ||
+      (nextSource === 'custom' && ffmpegSource === 'custom')
     ) {
       return;
     }
@@ -159,6 +165,53 @@ export function DependenciesSection({ highlightId }: DependenciesSectionProps) {
       return;
     }
     await setFfmpegSource(nextSource);
+  };
+
+  const handleBrowseFfmpegPath = async () => {
+    try {
+      const selected = await open({
+        multiple: false,
+        directory: false,
+        title: t('dependencies.customPathDialogTitle'),
+      });
+      if (typeof selected === 'string' && selected.trim() !== '') {
+        await setFfmpegCustomPath(selected);
+        setFfmpegPathDraft(null);
+      }
+    } catch {
+      // Dialog cancelled or failed; nothing to do.
+    }
+  };
+
+  // Same setting accepts a folder that contains ffmpeg; the backend resolves
+  // it, so offer a directory picker for portable builds.
+  const handleBrowseFfmpegFolder = async () => {
+    try {
+      const selected = await open({
+        multiple: false,
+        directory: true,
+        title: t('dependencies.customPathFolderDialogTitle'),
+      });
+      if (typeof selected === 'string' && selected.trim() !== '') {
+        await setFfmpegCustomPath(selected);
+        setFfmpegPathDraft(null);
+      }
+    } catch {
+      // Dialog cancelled or failed; nothing to do.
+    }
+  };
+
+  const handleClearFfmpegPath = async () => {
+    await setFfmpegCustomPath('');
+    setFfmpegPathDraft(null);
+  };
+
+  const handleCommitFfmpegPathDraft = async () => {
+    if (ffmpegPathDraft === null) return;
+    if (ffmpegPathDraft !== (ffmpegCustomPath ?? '')) {
+      await setFfmpegCustomPath(ffmpegPathDraft);
+    }
+    setFfmpegPathDraft(null);
   };
 
   const handleConfirmSourceChange = async () => {
@@ -187,15 +240,24 @@ export function DependenciesSection({ highlightId }: DependenciesSectionProps) {
     },
   ];
 
+  // Only FFmpeg supports a user-provided binary path (portable FFmpeg builds).
+  const ffmpegSourceOptions: Array<{ value: Exclude<DependencySource, 'auto'>; label: string }> = [
+    ...sourceOptions,
+    { value: 'custom', label: t('dependencies.sourceCustomPath') },
+  ];
+
   // yt-dlp keeps `auto` for backward compatibility. In UI, display it as App managed.
   const ytdlpSourceUi: Exclude<DependencySource, 'auto'> =
     ytdlpSource === 'system' ? 'system' : 'app';
   // Legacy FFmpeg `auto` can resolve to system FFmpeg, so display the resolved source.
   const ffmpegSourceUi: Exclude<DependencySource, 'auto'> =
-    ffmpegSource === 'system' || (ffmpegSource === 'auto' && ffmpegStatus?.is_system)
-      ? 'system'
-      : 'app';
+    ffmpegSource === 'custom'
+      ? 'custom'
+      : ffmpegSource === 'system' || (ffmpegSource === 'auto' && ffmpegStatus?.is_system)
+        ? 'system'
+        : 'app';
   const isFfmpegSystemSource = ffmpegSourceUi === 'system';
+  const isFfmpegCustomSource = ffmpegSourceUi === 'custom';
 
   return (
     <>
@@ -617,8 +679,8 @@ export function DependenciesSection({ highlightId }: DependenciesSectionProps) {
               <p className="text-[11px] font-medium text-muted-foreground">
                 {t('dependencies.source')}
               </p>
-              <div className="grid grid-cols-2 gap-1">
-                {sourceOptions.map((option) => {
+              <div className="grid grid-cols-3 gap-1">
+                {ffmpegSourceOptions.map((option) => {
                   const isActive = ffmpegSourceUi === option.value;
                   return (
                     <button
@@ -638,6 +700,63 @@ export function DependenciesSection({ highlightId }: DependenciesSectionProps) {
                   );
                 })}
               </div>
+              {isFfmpegCustomSource && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      value={ffmpegPathDraft ?? ffmpegCustomPath ?? ''}
+                      onChange={(event) => {
+                        setFfmpegPathDraft(event.target.value);
+                      }}
+                      onBlur={() => {
+                        void handleCommitFfmpegPathDraft();
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault();
+                          void handleCommitFfmpegPathDraft();
+                        }
+                      }}
+                      placeholder={t('dependencies.customPathPlaceholder')}
+                      spellCheck={false}
+                      className="flex-1 h-7 rounded-md border border-border bg-background px-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={handleBrowseFfmpegPath}
+                      disabled={ffmpegDownloading || ffmpegCheckingUpdate}
+                    >
+                      {t('dependencies.customPathBrowse')}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={handleBrowseFfmpegFolder}
+                      disabled={ffmpegDownloading || ffmpegCheckingUpdate}
+                    >
+                      {t('dependencies.customPathBrowseFolder')}
+                    </Button>
+                    {ffmpegCustomPath ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs text-muted-foreground"
+                        onClick={handleClearFfmpegPath}
+                        disabled={ffmpegDownloading || ffmpegCheckingUpdate}
+                      >
+                        {t('dependencies.customPathClear')}
+                      </Button>
+                    ) : null}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    {t('dependencies.customPathHint')}
+                  </p>
+                </div>
+              )}
             </div>
 
             <a
