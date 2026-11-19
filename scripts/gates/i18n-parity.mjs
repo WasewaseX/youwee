@@ -29,9 +29,28 @@ const locales = fs
 
 // Deterministic reference locale: 'en' (fallbackLng). Directory iteration
 // order differs across machines, so never rely on readdir order here.
+// F7 (review): the single sorted loop fed the reference map only from files
+// seen SO FAR — sorted order puts `ar` before `en`, so every Arabic file
+// hit an empty reference and was silently skipped. Load the ENTIRE English
+// reference first, then compare every other locale against it.
 const REFERENCE_LOCALE = 'en';
 const reference = new Map();
+for (const locale of [REFERENCE_LOCALE]) {
+  for (const jsonFile of fs.readdirSync(path.join(localesDir, locale))) {
+    if (!jsonFile.endsWith('.json')) continue;
+    const rel = `${locale}/${jsonFile}`;
+    let data;
+    try {
+      data = JSON.parse(fs.readFileSync(path.join(localesDir, locale, jsonFile), 'utf8'));
+    } catch (e) {
+      violations.push(`${rel}: invalid JSON - ${e.message}`);
+      continue;
+    }
+    reference.set(jsonFile, { keys: new Set(flatten(data)), locale });
+  }
+}
 for (const locale of locales) {
+  if (locale === REFERENCE_LOCALE) continue;
   for (const jsonFile of fs.readdirSync(path.join(localesDir, locale))) {
     if (!jsonFile.endsWith('.json')) continue;
     const rel = `${locale}/${jsonFile}`;
@@ -43,10 +62,6 @@ for (const locale of locales) {
       continue;
     }
     const keys = flatten(data);
-    if (locale === REFERENCE_LOCALE) {
-      reference.set(jsonFile, { keys: new Set(keys), locale });
-      continue;
-    }
     if (!reference.has(jsonFile)) continue;
     const ref = reference.get(jsonFile);
     const refSet = ref.keys;

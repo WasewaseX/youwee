@@ -3,6 +3,7 @@
 // (shadcn/ui generated files are kebab-case by design). Hooks use*.ts(x);
 // lib files kebab-case; css kebab-case.
 import {
+  addedFiles,
   changedFiles,
   emitBaselineIfRequested,
   failBlocking,
@@ -11,6 +12,7 @@ import {
 } from './lib/scan-util.mjs';
 
 const changed = new Set(changedFiles());
+const newFiles = new Set(addedFiles());
 const blocking = [];
 const ratcheted = [];
 
@@ -52,7 +54,11 @@ for (const file of listTrackedFiles()) {
   }
 
   if (violation) {
-    if (changed.has(file)) blocking.push(violation);
+    // F6 (review): only NEW files block outright. A pre-existing file that
+    // keeps its legacy name goes into the ratchet so its saved allowance
+    // survives unrelated edits (an edited legacy file still fails the
+    // moment its violation COUNT grows).
+    if (newFiles.has(file)) blocking.push(violation);
     else ratcheted.push(violation);
   }
 }

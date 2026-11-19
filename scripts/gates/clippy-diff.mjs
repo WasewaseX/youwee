@@ -11,12 +11,18 @@ import path from 'node:path';
 import { changedFiles, failBlocking, finishAdvisory, REPO_ROOT } from './lib/scan-util.mjs';
 
 const jsonPath = path.join(REPO_ROOT, 'target', 'clippy-output.json');
+// F2 (review): a missing or empty capture used to be treated as success
+// ("skip") — exactly the failure mode of the capture step it depends on.
+// A capture the gate cannot evaluate must FAIL, never pass.
 if (!fs.existsSync(jsonPath)) {
-  console.warn('CLIPPY DIFF: no clippy output found (skip)');
-  process.exit(0);
+  console.error('FAIL CLIPPY DIFF: target/clippy-output.json is missing - clippy never ran');
+  process.exit(1);
 }
-
 const raw = fs.readFileSync(jsonPath, 'utf8');
+if (raw.trim().length === 0) {
+  console.error('FAIL CLIPPY DIFF: target/clippy-output.json is empty - clippy never ran');
+  process.exit(1);
+}
 const warnings = [];
 
 for (const line of raw.split('\n')) {

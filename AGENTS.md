@@ -56,6 +56,7 @@ When bumping the version, you MUST do ALL of the following:
 ### Pre-commit Hook
 
 The repo has a `.git/hooks/pre-commit` that runs 3 checks automatically:
+
 1. Biome lint
 2. TypeScript type check (`tsc --noEmit`)
 3. Cargo check

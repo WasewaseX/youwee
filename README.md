@@ -2,29 +2,29 @@
 
 <div align="center">
 
-  [![English](https://img.shields.io/badge/lang-English-blue)](README.md)
-  [![Tiếng Việt](https://img.shields.io/badge/lang-Tiếng_Việt-red)](docs/README.vi.md)
-  [![简体中文](https://img.shields.io/badge/lang-简体中文-green)](docs/README.zh-CN.md)
-  ![Français](https://img.shields.io/badge/lang-Français-0055A4)
-  ![Русский](https://img.shields.io/badge/lang-Русский-1F5FBF)
-  ![العربية](https://img.shields.io/badge/lang-%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9-0A8F6A)
-  ![ไทย](https://img.shields.io/badge/lang-%E0%B9%84%E0%B8%97%E0%B8%A2-7B1FA2)
-  ![Português](https://img.shields.io/badge/lang-Português-009C3B)
-  ![日本語](https://img.shields.io/badge/lang-%E6%97%A5%E6%9C%AC%E8%AA%9E-E60012)
-  ![Español](https://img.shields.io/badge/lang-Espa%C3%B1ol-C60B1E)
-  [![Vote for next language](https://img.shields.io/badge/Vote-Next_Language-orange?logo=github)](https://github.com/vanloctech/youwee/discussions/18)
+[![English](https://img.shields.io/badge/lang-English-blue)](README.md)
+[![Tiếng Việt](https://img.shields.io/badge/lang-Tiếng_Việt-red)](docs/README.vi.md)
+[![简体中文](https://img.shields.io/badge/lang-简体中文-green)](docs/README.zh-CN.md)
+![Français](https://img.shields.io/badge/lang-Français-0055A4)
+![Русский](https://img.shields.io/badge/lang-Русский-1F5FBF)
+![العربية](https://img.shields.io/badge/lang-%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9-0A8F6A)
+![ไทย](https://img.shields.io/badge/lang-%E0%B9%84%E0%B8%97%E0%B8%A2-7B1FA2)
+![Português](https://img.shields.io/badge/lang-Português-009C3B)
+![日本語](https://img.shields.io/badge/lang-%E6%97%A5%E6%9C%AC%E8%AA%9E-E60012)
+![Español](https://img.shields.io/badge/lang-Espa%C3%B1ol-C60B1E)
+[![Vote for next language](https://img.shields.io/badge/Vote-Next_Language-orange?logo=github)](https://github.com/vanloctech/youwee/discussions/18)
 
   <a href="https://youwee.app">
     <img src="src-tauri/icons/icon.png" alt="Youwee Logo" width="128" height="128">
   </a>
-  
-  **Beautiful and Ultimate yt-dlp GUI & Video Downloader - Processing - Free & Open Source**
 
-  [![Downloads](https://img.shields.io/github/downloads/vanloctech/youwee/total?label=Downloads)](https://github.com/vanloctech/youwee/releases)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-  [![Reddit](https://img.shields.io/badge/Reddit-r%2Fyouwee-FF4500?logo=reddit&logoColor=white)](https://www.reddit.com/r/youwee)
-  [![Website](https://img.shields.io/badge/Website-youwee.app-0EA5E9)](https://youwee.app)
-  [![Discord](https://img.shields.io/badge/Discord-Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/yCrs9hcw)
+**Beautiful and Ultimate yt-dlp GUI & Video Downloader - Processing - Free & Open Source**
+
+[![Downloads](https://img.shields.io/github/downloads/vanloctech/youwee/total?label=Downloads)](https://github.com/vanloctech/youwee/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Reddit](https://img.shields.io/badge/Reddit-r%2Fyouwee-FF4500?logo=reddit&logoColor=white)](https://www.reddit.com/r/youwee)
+[![Website](https://img.shields.io/badge/Website-youwee.app-0EA5E9)](https://youwee.app)
+[![Discord](https://img.shields.io/badge/Discord-Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/yCrs9hcw)
 </div>
 
 ---
@@ -54,6 +54,7 @@
 - **Fast & Lightweight** — Designed for minimal resource usage
 
 ## Screenshots
+
 ![Youwee](docs/screenshots/youwee-youtube.png)
 
 <details>
@@ -97,25 +98,26 @@ Use Youwee only with content you own, have permission to use, or are legally all
 ### Download for your platform
 
 > ⚠️ **Note**: The app is not signed with an Apple Developer certificate yet. If macOS blocks the app, open terminal and run:
+>
 > ```bash
 > xattr -cr /Applications/Youwee.app
 > ```
 
-| Platform | Download                                                                                                                                                                                                                                   |
-|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Windows** (x64) | [Download .msi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Windows.msi) · [Download .exe](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Windows-Setup.exe)                                |
-| **macOS** (Apple Silicon) | [Download .dmg](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Mac-Apple-Silicon.dmg)                                                                                                                                |
-| **macOS** (Intel) | [Download .dmg](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Mac-Intel.dmg)                                                                                                                                        |
-| **Linux** (x64) | [Download .deb](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.deb) · [Download .flatpak](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.flatpak) · [Download .AppImage](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.AppImage) (AppImage may require FUSE) |
+| Platform                  | Download                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Windows** (x64)         | [Download .msi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Windows.msi) · [Download .exe](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Windows-Setup.exe)                                                                                                                                       |
+| **macOS** (Apple Silicon) | [Download .dmg](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Mac-Apple-Silicon.dmg)                                                                                                                                                                                                                                       |
+| **macOS** (Intel)         | [Download .dmg](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Mac-Intel.dmg)                                                                                                                                                                                                                                               |
+| **Linux** (x64)           | [Download .deb](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.deb) · [Download .flatpak](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.flatpak) · [Download .AppImage](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.AppImage) (AppImage may require FUSE) |
 
 > See all releases on the [Releases page](https://github.com/vanloctech/youwee/releases)
 
 ### Browser Extension (Chromium + Firefox)
 
-| Browser | Download |
-|---------|----------|
-| **Chromium** (Chrome/Edge/Brave/Opera/Vivaldi/Arc/Coc Coc) | [Download .zip](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Chromium.zip) |
-| **Firefox** | [Download .xpi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Firefox-signed.xpi) |
+| Browser                                                    | Download                                                                                                           |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Chromium** (Chrome/Edge/Brave/Opera/Vivaldi/Arc/Coc Coc) | [Download .zip](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Chromium.zip)       |
+| **Firefox**                                                | [Download .xpi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Firefox-signed.xpi) |
 
 - One-click send current page to Youwee with `Download now` or `Add to queue`
 - Floating button supports `Video/Audio` + quality selection on supported sites

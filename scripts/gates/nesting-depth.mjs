@@ -30,6 +30,10 @@ for (const file of listTrackedFiles({ extensions: CODE_EXTENSIONS })) {
   if (worst > 6) perFile[file] = worst - 6;
 }
 emitBaselineIfRequested({ 'style.nesting': { perFile } });
-ratchetViolations('style.nesting', perFile, { unit: 'levels over 6' });
-finishAdvisory('NESTING DEPTH', []);
+// F8 (review): ratchetViolations RETURNS the violations — the previous code
+// dropped the list and reported clean even above the saved limit.
+finishAdvisory(
+  'NESTING DEPTH',
+  ratchetViolations('style.nesting', perFile, { unit: 'levels over 6' }),
+);
 console.log(`NESTING DEPTH: ${Object.keys(perFile).length} file(s) flagged (ratcheted)`);

@@ -1,6 +1,6 @@
 id: com.vanloctech.youwee
 runtime: org.gnome.Platform
-runtime-version: '49'
+runtime-version: "49"
 sdk: org.gnome.Sdk
 command: youwee
 

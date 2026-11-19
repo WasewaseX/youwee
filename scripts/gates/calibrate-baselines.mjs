@@ -15,6 +15,17 @@ const scanners = [
   'line-length.mjs',
   'file-naming.mjs',
   'ts-any-audit.mjs',
+  // F8 (review): every ratcheted gate needs a saved limit, otherwise all
+  // its legacy findings are treated as new. Calibrate the advisory
+  // ratchets (and the blank-target ratchet) alongside the blocking ones.
+  'nesting-depth.mjs',
+  'magic-numbers.mjs',
+  'console-error-audit.mjs',
+  'duplication-check.mjs',
+  'env-scan.mjs',
+  'unused-i18n.mjs',
+  'function-length.mjs',
+  'blank-target-safety.mjs',
 ];
 
 const outPath = path.join(REPO_ROOT, 'scripts', 'gates', 'baselines.json');

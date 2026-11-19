@@ -2,9 +2,9 @@
 
 <div align="center">
 
-  [![English](https://img.shields.io/badge/lang-English-blue)](PLUGINS.md)
-  [![Tiếng Việt](https://img.shields.io/badge/lang-Tiếng_Việt-red)](docs/PLUGINS.vi.md)
-  [![简体中文](https://img.shields.io/badge/lang-简体中文-green)](docs/PLUGINS.zh-CN.md)
+[![English](https://img.shields.io/badge/lang-English-blue)](PLUGINS.md)
+[![Tiếng Việt](https://img.shields.io/badge/lang-Tiếng_Việt-red)](docs/PLUGINS.vi.md)
+[![简体中文](https://img.shields.io/badge/lang-简体中文-green)](docs/PLUGINS.zh-CN.md)
 
 </div>
 
@@ -14,10 +14,10 @@ Plugins can also provide localized guides, typed configuration fields, requested
 
 ## Supported Plugins
 
-| Plugin | What it does | Trigger | Permissions | Links |
-| --- | --- | --- | --- | --- |
-| **Notification Webhooks** | Sends download notifications to Telegram or Discord when a download completes or fails. | `download.completed`, `download.failed` | Network access | [Repository](https://github.com/vanloctech/youwee-plugin-notification-webhooks) · [Latest release](https://github.com/vanloctech/youwee-plugin-notification-webhooks/releases/latest) |
-| **Google Drive Upload** | Uploads completed download files to a configured Google Drive folder. | `download.completed` | Network access, read access to the completed file from the trigger payload | [Repository](https://github.com/vanloctech/youwee-plugin-gg-drive-upload) · [Latest release](https://github.com/vanloctech/youwee-plugin-gg-drive-upload/releases/latest) |
+| Plugin                    | What it does                                                                            | Trigger                                 | Permissions                                                                | Links                                                                                                                                                                                 |
+| ------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Notification Webhooks** | Sends download notifications to Telegram or Discord when a download completes or fails. | `download.completed`, `download.failed` | Network access                                                             | [Repository](https://github.com/vanloctech/youwee-plugin-notification-webhooks) · [Latest release](https://github.com/vanloctech/youwee-plugin-notification-webhooks/releases/latest) |
+| **Google Drive Upload**   | Uploads completed download files to a configured Google Drive folder.                   | `download.completed`                    | Network access, read access to the completed file from the trigger payload | [Repository](https://github.com/vanloctech/youwee-plugin-gg-drive-upload) · [Latest release](https://github.com/vanloctech/youwee-plugin-gg-drive-upload/releases/latest)             |
 
 ## Install A Plugin
 

@@ -53,10 +53,10 @@ Popup vẫn gửi được trên mọi trang HTTP/HTTPS hợp lệ.
 
 ## Tải Gói Cài (Cho Người Dùng)
 
-| Trình duyệt | Tải về |
-|-------------|--------|
-| **Chromium** (Chrome/Edge/Brave/Opera/Vivaldi/Arc/Coc Coc) | [Tải .zip](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Chromium.zip) |
-| **Firefox** | [Tải .xpi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Firefox-signed.xpi) |
+| Trình duyệt                                                | Tải về                                                                                                        |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Chromium** (Chrome/Edge/Brave/Opera/Vivaldi/Arc/Coc Coc) | [Tải .zip](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Chromium.zip)       |
+| **Firefox**                                                | [Tải .xpi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Firefox-signed.xpi) |
 
 ## Hướng Dẫn Cài Đặt
 

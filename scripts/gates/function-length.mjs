@@ -39,5 +39,6 @@ emitBaselineIfRequested({ 'style.functionLength': { perFile } });
 const violations = ratchetViolations('style.functionLength', perFile, {
   unit: 'functions over 120 lines',
 });
-finishAdvisory('FUNCTION LENGTH', violations.length > 0 ? [] : []);
+// F8 (review): the ternary always evaluated to [] — pass the real findings.
+finishAdvisory('FUNCTION LENGTH', violations);
 console.log(`FUNCTION LENGTH: ${Object.keys(perFile).length} file(s) over threshold (ratcheted)`);

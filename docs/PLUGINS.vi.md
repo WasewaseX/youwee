@@ -2,9 +2,9 @@
 
 <div align="center">
 
-  [![English](https://img.shields.io/badge/lang-English-blue)](../PLUGINS.md)
-  [![Tiếng Việt](https://img.shields.io/badge/lang-Tiếng_Việt-red)](PLUGINS.vi.md)
-  [![简体中文](https://img.shields.io/badge/lang-简体中文-green)](PLUGINS.zh-CN.md)
+[![English](https://img.shields.io/badge/lang-English-blue)](../PLUGINS.md)
+[![Tiếng Việt](https://img.shields.io/badge/lang-Tiếng_Việt-red)](PLUGINS.vi.md)
+[![简体中文](https://img.shields.io/badge/lang-简体中文-green)](PLUGINS.zh-CN.md)
 
 </div>
 
@@ -14,10 +14,10 @@ Plugin cũng có thể cung cấp hướng dẫn đa ngôn ngữ, field cấu h�
 
 ## Plugin được hỗ trợ
 
-| Plugin | Chức năng | Trigger | Quyền | Liên kết |
-| --- | --- | --- | --- | --- |
-| **Notification Webhooks** | Gửi thông báo tải xuống tới Telegram hoặc Discord khi tải xong hoặc thất bại. | `download.completed`, `download.failed` | Truy cập mạng | [Repository](https://github.com/vanloctech/youwee-plugin-notification-webhooks) · [Bản mới nhất](https://github.com/vanloctech/youwee-plugin-notification-webhooks/releases/latest) |
-| **Google Drive Upload** | Upload file đã tải xong lên thư mục Google Drive đã cấu hình. | `download.completed` | Truy cập mạng, đọc file đã tải xong từ trigger payload | [Repository](https://github.com/vanloctech/youwee-plugin-gg-drive-upload) · [Bản mới nhất](https://github.com/vanloctech/youwee-plugin-gg-drive-upload/releases/latest) |
+| Plugin                    | Chức năng                                                                     | Trigger                                 | Quyền                                                  | Liên kết                                                                                                                                                                            |
+| ------------------------- | ----------------------------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Notification Webhooks** | Gửi thông báo tải xuống tới Telegram hoặc Discord khi tải xong hoặc thất bại. | `download.completed`, `download.failed` | Truy cập mạng                                          | [Repository](https://github.com/vanloctech/youwee-plugin-notification-webhooks) · [Bản mới nhất](https://github.com/vanloctech/youwee-plugin-notification-webhooks/releases/latest) |
+| **Google Drive Upload**   | Upload file đã tải xong lên thư mục Google Drive đã cấu hình.                 | `download.completed`                    | Truy cập mạng, đọc file đã tải xong từ trigger payload | [Repository](https://github.com/vanloctech/youwee-plugin-gg-drive-upload) · [Bản mới nhất](https://github.com/vanloctech/youwee-plugin-gg-drive-upload/releases/latest)             |
 
 ## Cài plugin
 

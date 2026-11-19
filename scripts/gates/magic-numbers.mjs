@@ -35,6 +35,9 @@ for (const file of listTrackedFiles({ extensions: CODE_EXTENSIONS })) {
   if (count > 0) perFile[file] = count;
 }
 emitBaselineIfRequested({ 'style.magicNumbers': { perFile } });
-ratchetViolations('style.magicNumbers', perFile, { unit: 'magic numbers' });
-finishAdvisory('MAGIC NUMBERS', []);
+// F8 (review): pass the ratchet findings to the reporter, not [].
+finishAdvisory(
+  'MAGIC NUMBERS',
+  ratchetViolations('style.magicNumbers', perFile, { unit: 'magic numbers' }),
+);
 console.log(`MAGIC NUMBERS: ${Object.keys(perFile).length} file(s) flagged (ratcheted)`);

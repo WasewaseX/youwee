@@ -26,6 +26,9 @@ for (const file of listTrackedFiles({ extensions: CODE_EXTENSIONS })) {
   if (n > 0) perFile[file] = n;
 }
 emitBaselineIfRequested({ 'style.envAccess': { perFile } });
-ratchetViolations('style.envAccess', perFile, { unit: 'env accesses' });
-finishAdvisory('ENV ACCESS INVENTORY', []);
+// F8 (review): pass the ratchet findings to the reporter, not [].
+finishAdvisory(
+  'ENV ACCESS INVENTORY',
+  ratchetViolations('style.envAccess', perFile, { unit: 'env accesses' }),
+);
 console.log(`ENV ACCESS: ${Object.keys(perFile).length} file(s) (ratcheted)`);

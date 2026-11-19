@@ -3,10 +3,10 @@ name: Linux Flatpak Test Build
 on:
   pull_request:
     paths:
-      - '.github/workflows/flatpak-test.yml'
-      - 'flatpak/**'
-      - 'scripts/fix-deb-deep-link-desktop-entry.sh'
-      - 'src-tauri/**'
+      - ".github/workflows/flatpak-test.yml"
+      - "flatpak/**"
+      - "scripts/fix-deb-deep-link-desktop-entry.sh"
+      - "src-tauri/**"
   push:
     branches:
       - main
@@ -41,7 +41,7 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: './src-tauri -> target'
+          workspaces: "./src-tauri -> target"
           key: flatpak-test-${{ env.LINUX_TARGET }}
 
       - name: Install Linux and Flatpak dependencies

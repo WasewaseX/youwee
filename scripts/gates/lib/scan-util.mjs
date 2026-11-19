@@ -210,17 +210,36 @@ export function changedFiles() {
         const repo = ev.repository.full_name;
         const prNumber = ev.pull_request?.number ?? ev.number;
         if (repo && prNumber) {
-          const out = execSync(
-            'curl -sf -H "Authorization: Bearer ' +
-              token +
-              '" ' +
+          // F5 (review): the files endpoint returns at most 100 entries per
+          // page; taking one page silently DROPPED every later file for PRs
+          // touching >100 files, so clippy-diff classified their warnings as
+          // legacy. Paginate until a short page ends the list. The token is
+          // passed through the environment (never the command line).
+          const script = [
+            'set -uo pipefail',
+            'page=1',
+            'pagefile="$(mktemp)"',
+            'trap \'rm -f "$pagefile"\' EXIT',
+            'while [ "$page" -le 50 ]; do',
+            'curl -sf -H "Authorization: Bearer $GATES_GH_TOKEN" ' +
               '"https://api.github.com/repos/' +
               repo +
               '/pulls/' +
               prNumber +
-              '/files?per_page=100" | jq -r ".[].filename"',
-            { cwd: REPO_ROOT, maxBuffer: 32 * 1024 * 1024, shell: '/bin/bash' },
-          ).toString();
+              '/files?per_page=100&page=$page" > "$pagefile" || exit 1',
+            'n="$(jq -r \'length\' "$pagefile" 2>/dev/null || echo 0)"',
+            'case "$n" in ""|*[!0-9]*) break ;; esac',
+            'jq -r \'.[].filename\' "$pagefile"',
+            '[ "$n" -lt 100 ] && break',
+            'page=$((page + 1))',
+            'done',
+          ].join('\n');
+          const out = execSync(script, {
+            cwd: REPO_ROOT,
+            maxBuffer: 64 * 1024 * 1024,
+            shell: '/bin/bash',
+            env: { ...process.env, GATES_GH_TOKEN: token },
+          }).toString();
           const files = out.split('\n').filter(Boolean);
           if (files.length > 0) return files;
         }
@@ -263,5 +282,80 @@ export function isMergeCommit(sha) {
     return parents.length > 2;
   } catch {
     return false;
+  }
+}
+
+/** Diff range for the change under review (PR three-dot, or last commit). */
+function reviewDiffRange() {
+  const event = process.env.GITHUB_EVENT_NAME ?? '';
+  if (event === 'pull_request') {
+    const base = process.env.GITHUB_BASE_REF ?? 'main';
+    try {
+      execSync(`git fetch --no-tags origin ${base}`, { cwd: REPO_ROOT });
+    } catch {
+      // use the stale origin/<base> if the fetch fails; the diff still works
+    }
+    return `origin/${base}...HEAD`;
+  }
+  const sha = process.env.GITHUB_SHA ?? 'HEAD';
+  return `${sha}~1 ${sha}`;
+}
+
+/**
+ * F6 (review): line numbers (1-based, NEW-file side) added by the change
+ * under review, keyed by repo-relative path. Zero-tolerance scanners hold
+ * NEW code to the zero bar while pre-existing findings in an edited file
+ * keep their saved ratchet allowance ("only growing counts fail").
+ * Returns a Map<string, Set<number>>; empty when the diff is unavailable.
+ */
+export function addedLinesMap() {
+  const map = new Map();
+  try {
+    const out = execSync(`git diff -U0 --no-color ${reviewDiffRange()} --`, {
+      cwd: REPO_ROOT,
+      maxBuffer: 64 * 1024 * 1024,
+    }).toString();
+    let file = null;
+    let line = 0;
+    for (const raw of out.split('\n')) {
+      if (raw.startsWith('+++ ')) {
+        const p = raw.slice(4).replace(/^b\//, '');
+        file = p === '/dev/null' ? null : p;
+        continue;
+      }
+      if (raw.startsWith('@@')) {
+        const m = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/.exec(raw);
+        if (m && file) line = Number(m[1]);
+        continue;
+      }
+      if (!file) continue;
+      if (raw.startsWith('+')) {
+        if (!map.has(file)) map.set(file, new Set());
+        map.get(file).add(line);
+        line += 1;
+      } else if (raw.startsWith('-') || raw.startsWith('\\')) {
+        // deleted or "\ No newline" — new-file line counter does not move
+      } else if (raw.length > 0) {
+        line += 1;
+      }
+    }
+  } catch {
+    // shallow/partial checkouts: treat everything as NOT added
+  }
+  return map;
+}
+
+/** Paths ADDED by the change under review (new files only). */
+export function addedFiles() {
+  try {
+    return execSync(`git diff --name-only --diff-filter=A ${reviewDiffRange()}`, {
+      cwd: REPO_ROOT,
+      maxBuffer: 32 * 1024 * 1024,
+    })
+      .toString()
+      .split('\n')
+      .filter(Boolean);
+  } catch {
+    return [];
   }
 }

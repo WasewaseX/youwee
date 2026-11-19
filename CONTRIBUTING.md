@@ -88,6 +88,15 @@ git config user.email "321686523+WasewaseX@users.noreply.github.com"
 Commits authored by any other identity will fail the gate and the PR cannot be
 merged until the history is rewritten.
 
+Email text alone is not trusted — anyone can configure arbitrary emails. A
+commit is accepted only when its identity is also **authenticated**: either
+the commit carries a cryptographic signature that git can verify (signed
+commits), or the GitHub commits API links **both** the author and the
+committer to the `WasewaseX` account. Unsigned commits that GitHub cannot
+attribute to `WasewaseX` are rejected. For the strongest guarantee, also
+enable "Require signed commits" in the repository's branch protection
+settings (a repository setting, not something this document can enforce).
+
 ## Quality Gate System
 
 The system lives in `.github/workflows/quality-gates.yml` and
@@ -227,9 +236,13 @@ bun scripts/gates/integrity-generate.mjs
 git add .integrity/manifest.json
 ```
 
-Reviewed CI work may alternatively carry the `ci-change` PR label
-(`g30 protected-paths`, `scripts/gates/protected-paths.mjs`). Silent workflow
-tampering fails the build.
+The `ci-change` PR label (`g30 protected-paths`,
+`scripts/gates/protected-paths.mjs`) exempts a reviewed CI change from the
+path-freeze check ONLY. It does not replace the manifest: `g29
+integrity-manifest` recomputes every SHA-256 on every run, so a CI-critical
+edit with an unchanged `.integrity/manifest.json` fails the integrity gate
+regardless of any label. Refreshing the manifest in the same commit is
+always required. Silent workflow tampering fails the build.
 
 ## Local gate runner
 

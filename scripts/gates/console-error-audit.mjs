@@ -25,6 +25,9 @@ for (const file of listTrackedFiles({ extensions: CODE_EXTENSIONS })) {
   if (n > 0) perFile[file] = n;
 }
 emitBaselineIfRequested({ 'style.consoleError': { perFile } });
-ratchetViolations('style.consoleError', perFile, { unit: 'console.error/warn' });
-finishAdvisory('CONSOLE.ERROR AUDIT', []);
+// F8 (review): pass the ratchet findings to the reporter, not [].
+finishAdvisory(
+  'CONSOLE.ERROR AUDIT',
+  ratchetViolations('style.consoleError', perFile, { unit: 'console.error/warn' }),
+);
 console.log(`CONSOLE.ERROR AUDIT: ${Object.keys(perFile).length} file(s) (ratcheted)`);

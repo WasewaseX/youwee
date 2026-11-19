@@ -39,6 +39,9 @@ for (const file of listTrackedFiles()) {
   }
 }
 emitBaselineIfRequested({ 'style.duplication': { perFile } });
-ratchetViolations('style.duplication', perFile, { unit: 'duplicated blocks' });
-finishAdvisory('DUPLICATED BLOCKS', []);
+// F8 (review): pass the ratchet findings to the reporter, not [].
+finishAdvisory(
+  'DUPLICATED BLOCKS',
+  ratchetViolations('style.duplication', perFile, { unit: 'duplicated blocks' }),
+);
 console.log(`DUPLICATED BLOCKS: ${Object.keys(perFile).length} file(s) (ratcheted)`);

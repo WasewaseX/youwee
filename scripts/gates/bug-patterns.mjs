@@ -2,6 +2,7 @@
 // NEW occurrences in changed files block; legacy occurrences are ratcheted.
 
 import {
+  addedLinesMap,
   CODE_EXTENSIONS,
   changedFiles,
   emitBaselineIfRequested,
@@ -22,10 +23,16 @@ const counters = {
 };
 
 const changed = new Set(changedFiles());
+// F6 (review): zero tolerance applies to NEW code only — hits on lines this
+// change actually adds. Pre-existing findings in an edited file fall into
+// the ratchet counters, so a saved allowance keeps working ("only growing
+// counts fail"): an unrelated edit to SummaryPage.tsx no longer fails on
+// its legacy console.log.
+const added = addedLinesMap();
 
 function pushFinding(bucket, file, line, message, isChangedFile) {
   const hit = `${file}:${line}: ${message}`;
-  if (isChangedFile) {
+  if (isChangedFile && added.get(file)?.has(line)) {
     zeroTolerance.push(hit);
   } else {
     counters[bucket][file] = (counters[bucket][file] ?? 0) + 1;

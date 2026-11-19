@@ -26,6 +26,9 @@ for (const file of listTrackedFiles({ extensions: CODE_EXTENSIONS })) {
   if (n > 0) perFile[file] = n;
 }
 emitBaselineIfRequested({ 'style.tsEscapes': { perFile } });
-ratchetViolations('style.tsEscapes', perFile, { unit: 'escape hatches' });
-finishAdvisory('TS ESCAPE-HATCH AUDIT', []);
+// F8 (review): pass the ratchet findings to the reporter, not [].
+finishAdvisory(
+  'TS ESCAPE-HATCH AUDIT',
+  ratchetViolations('style.tsEscapes', perFile, { unit: 'escape hatches' }),
+);
 console.log(`TS ESCAPE-HATCH AUDIT: ${Object.keys(perFile).length} file(s) (ratcheted)`);

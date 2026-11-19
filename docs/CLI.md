@@ -53,26 +53,26 @@ youwee "https://www.youtube.com/watch?v=3TE5aR7EHus" --quality 720
 
 ## Options
 
-| Flag | Alias | Description |
-|------|-------|-------------|
-| `<url>` (positional) | | Video URL to download |
-| `--url <url>` | `-u` | Video URL (alternative to positional) |
-| `--quality <q>` | `-q` | Video: `best`, `8k`, `4k`, `2k`, `1080`, `720`, `480`, `360`. Audio: `128` or `auto` |
-| `--output <dir>` | `-o` | Absolute output folder for this queued download |
-| `--audio` | `-a` | Download audio only |
-| `--queue-only` | | Add to queue without starting the download |
-| `--target <t>` | `-t` | Routing: `auto` (default), `youtube`, `universal` |
-| `--skip-live` | | Skip live, scheduled, or was-live videos before downloading |
-| `--playlist` | | Allow yt-dlp to download playlist URLs |
-| `--no-playlist` | | Force single-video download for playlist URLs |
-| `--subtitle-mode <mode>` | | Subtitle mode: `off`, `auto`, `manual` |
-| `--subtitle-langs <langs>` | | Comma-separated subtitle languages, e.g. `en,vi,ja` |
-| `--subtitle-format <fmt>` | | Subtitle format: `srt`, `vtt`, `ass` |
-| `--embed-subs` | | Embed subtitles into the output file |
-| `--download-sections <range>` | | Download a time range, e.g. `00:30-02:10` |
-| `--live-from-start` | | Download livestreams from the beginning |
-| `--help` | `-h` | Show help |
-| `--version` | `-V` | Show version |
+| Flag                          | Alias | Description                                                                          |
+| ----------------------------- | ----- | ------------------------------------------------------------------------------------ |
+| `<url>` (positional)          |       | Video URL to download                                                                |
+| `--url <url>`                 | `-u`  | Video URL (alternative to positional)                                                |
+| `--quality <q>`               | `-q`  | Video: `best`, `8k`, `4k`, `2k`, `1080`, `720`, `480`, `360`. Audio: `128` or `auto` |
+| `--output <dir>`              | `-o`  | Absolute output folder for this queued download                                      |
+| `--audio`                     | `-a`  | Download audio only                                                                  |
+| `--queue-only`                |       | Add to queue without starting the download                                           |
+| `--target <t>`                | `-t`  | Routing: `auto` (default), `youtube`, `universal`                                    |
+| `--skip-live`                 |       | Skip live, scheduled, or was-live videos before downloading                          |
+| `--playlist`                  |       | Allow yt-dlp to download playlist URLs                                               |
+| `--no-playlist`               |       | Force single-video download for playlist URLs                                        |
+| `--subtitle-mode <mode>`      |       | Subtitle mode: `off`, `auto`, `manual`                                               |
+| `--subtitle-langs <langs>`    |       | Comma-separated subtitle languages, e.g. `en,vi,ja`                                  |
+| `--subtitle-format <fmt>`     |       | Subtitle format: `srt`, `vtt`, `ass`                                                 |
+| `--embed-subs`                |       | Embed subtitles into the output file                                                 |
+| `--download-sections <range>` |       | Download a time range, e.g. `00:30-02:10`                                            |
+| `--live-from-start`           |       | Download livestreams from the beginning                                              |
+| `--help`                      | `-h`  | Show help                                                                            |
+| `--version`                   | `-V`  | Show version                                                                         |
 
 Unknown or out-of-allowlist values are ignored and fall back to defaults. Output
 folders must be absolute paths, including Unix paths like `/Users/me/Videos`,

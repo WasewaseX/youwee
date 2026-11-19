@@ -68,6 +68,9 @@ if (fs.existsSync(enDir)) {
 }
 
 emitBaselineIfRequested({ 'i18n.unused': { perFile } });
-ratchetViolations('i18n.unused', perFile, { unit: 'unused keys' });
-finishAdvisory('UNUSED I18N KEYS', []);
+// F8 (review): pass the ratchet findings to the reporter, not [].
+finishAdvisory(
+  'UNUSED I18N KEYS',
+  ratchetViolations('i18n.unused', perFile, { unit: 'unused keys' }),
+);
 console.log(`UNUSED I18N KEYS: ${Object.keys(perFile).length} namespace(s) flagged (ratcheted)`);
