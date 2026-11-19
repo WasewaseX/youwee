@@ -10,32 +10,38 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.20.4] - 2026-09-20
 
 ### Sửa lỗi
+
 - **Cài đặt tải từ browser extension** - Giữ lại các cài đặt Youwee global như container, thư mục đầu ra, playlist và subtitle khi browser extension bắt đầu tải xuống
 - **Tương thích runtime AppImage** - Đóng gói lại AppImage Linux không kèm các thư viện runtime Wayland, GLib và GStreamer có thể xung đột với Mesa và WebKitGTK mới hơn, tránh cửa sổ trắng khi khởi động trên các bản Linux hiện đại
 - **Chọn ngôn ngữ subtitle tự động** - Tôn trọng các ngôn ngữ đã chọn cho subtitle tự động thay vì yêu cầu mọi ngôn ngữ subtitle có sẵn hoặc được dịch
 - **Tương thích khởi động Flatpak** - Dùng GNOME Platform 49 ổn định trong khi điều tra crash khởi động của WebKitGTK 2.52, không khởi tạo system tray không có trong runtime Flatpak, đồng thời smoke-test app đã đóng gói với Xvfb trong CI
 
 ### Thay đổi
+
 - **Kiểm tra release AppImage** - Kiểm tra layout runtime AppImage sau khi đóng gói lại trong CI Linux và ký lại artifact hoàn chỉnh để đảm bảo tính toàn vẹn khi cập nhật
 - **Thứ tự ký extension Firefox** - Chỉ ký extension Firefox sau khi toàn bộ gói desktop và Flatpak build thành công, tránh release lỗi làm tiêu hao version AMO
 
 ## [0.20.3] - 2026-08-23
 
 ### Sửa lỗi
+
 - **Metadata gói deep link Linux** - Chuẩn hóa MIME desktop entry trong gói `.deb` để bước kiểm tra đóng gói release chạy ổn định
 
 ### Thay đổi
+
 - **Kiểm tra CI gói Linux** - Build và kiểm tra gói `.deb` trong CI để xác nhận desktop entry deep link của Youwee giữ nguyên yêu cầu URL
 
 ## [0.20.2] - 2026-08-23
 
 ### Sửa lỗi
+
 - **Thêm vào hàng đợi trên macOS Monterey** - Sửa lỗi nút Add không phản hồi trên WebView macOS cũ chưa hỗ trợ API UUID hiện đại của trình duyệt
 - **Deep link Firefox trên Linux** - Truyền URL `youwee://` qua desktop entry trong gói `.deb` để yêu cầu Download now đến được Youwee
 
 ## [0.20.1] - 2026-08-01
 
 ### Thêm mới
+
 - **Plugin Store** - Thêm menu riêng trong Cài đặt để tìm và cài các gói plugin đã được kiểm soát từ catalog live trên GitHub
 - **Metadata trong tên file** - Thêm tùy chọn trong Download để thêm thông tin video đã chọn như ngày đăng, lượt xem, người đăng, thời lượng, độ phân giải hoặc ID video vào đầu tên file
 - **Ngôn ngữ tiếng Romania** - Thêm bản dịch tiếng Romania cho giao diện ứng dụng
@@ -43,11 +49,13 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Ngôn ngữ tiếng Thổ Nhĩ Kỳ** - Thêm bản dịch tiếng Thổ Nhĩ Kỳ cho giao diện ứng dụng
 
 ### Sửa lỗi
+
 - **Icon AppImage** - Cập nhật Tauri build tooling và các dependency tương thích để gói AppImage Linux giữ đúng metadata icon desktop
 
 ## [0.20.0] - 2026-07-08
 
 ### Thêm mới
+
 - **Ngôn ngữ tiếng Nhật** - Thêm bản dịch tiếng Nhật cho giao diện ứng dụng
 - **Ngôn ngữ tiếng Tây Ban Nha** - Thêm bản dịch tiếng Tây Ban Nha cho giao diện ứng dụng
 - **Chọn codec trong Universal** - Thêm lựa chọn codec video cho tải xuống Universal
@@ -55,9 +63,11 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Gói Flatpak cho Linux** - Thêm gói phát hành Flatpak cho người dùng Linux trên các distro mới, nơi AppImage có thể cần cài thêm FUSE
 
 ### Thay đổi
+
 - **Cập nhật trong Flatpak** - Bỏ qua updater AppImage tích hợp khi Youwee chạy từ Flatpak để việc cập nhật do Flatpak quản lý
 
 ### Sửa lỗi
+
 - **Phóng to cửa sổ trên Windows** - Sửa lỗi double-click thanh tiêu đề tùy chỉnh trên Windows làm cửa sổ phóng to rồi tự quay lại kích thước cũ
 - **Mở vị trí file** - Chuyển các thao tác mở file trong thư mục qua command có xử lý theo từng hệ điều hành của Youwee để mở thư mục ổn định hơn
 - **Nhận diện dependency** - Thêm `~/.local/bin` vào đường dẫn tìm kiếm trên Unix để app mở từ GUI tìm được các công cụ người dùng tự cài ổn định hơn
@@ -70,6 +80,7 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.19.0] - 2026-06-30
 
 ### Thêm mới
+
 - **Collection trong Thư viện** - Thêm tùy chọn tự tạo collection cho playlist đã tách, lượt tải từ channel và file chapter
 - **Cách xóa trong Thư viện** - Thêm cài đặt chọn việc xóa một mục trong Thư viện có xóa luôn file media hay không
 - **Tốc độ khung hình** - Thêm tùy chọn ưu tiên tải 30 FPS trong Tải xuống, Universal và Kênh, kèm cảnh báo rõ về chất lượng
@@ -77,11 +88,13 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Công cụ tách file** - Thêm action tùy chọn để tách file media đã tải xong thành các đoạn có tên riêng bằng FFmpeg
 
 ### Thay đổi
+
 - **Lịch sử trong Thư viện** - Bỏ cài đặt giới hạn số mục lịch sử để Thư viện có thể giữ bản ghi video đã tải cho tới khi người dùng tự xóa
 - **Tóm tắt trong Thư viện** - Tinh chỉnh action của item và chuyển bản tóm tắt AI đầy đủ sang dialog đọc riêng có chỉnh cỡ chữ
 - **Thư mục tải của hàng đợi** - Hỏi người dùng có muốn áp dụng thư mục tải mới cho các item trong hàng đợi khi đổi thư mục tải tổng hay không
 
 ### Sửa lỗi
+
 - **Link extension khi app chưa mở** - Sửa lỗi link tải từ browser extension chỉ mở Youwee nhưng không thêm video khi app đang đóng
 - **Đánh số trong AI Summary** - Sửa lỗi danh sách chủ đề trên giao diện luôn bắt đầu lại từ 1 khi có dòng trống giữa các mục
 - **Điều khiển lấy video Kênh** - Thêm nút dừng khi đang lấy video kênh và tránh tải lại danh sách khi mở kênh vừa duyệt xong
@@ -91,6 +104,7 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.18.0] - 2026-06-29
 
 ### Thêm mới
+
 - **Đánh số file trong hàng đợi** - Thêm tùy chọn thêm số thứ tự hàng đợi vào đầu tên file khi tải nhiều video thường
 - **Folder tải trong hàng đợi** - Thêm nút đổi folder tải xuống riêng cho từng item trong hàng đợi
 - **Tùy chọn yt-dlp nâng cao** - Thêm tùy chọn nâng cao đã kiểm soát cho người dùng cần tinh chỉnh lệnh tải yt-dlp
@@ -101,9 +115,11 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Rule bỏ qua cookie** - Thêm cài đặt dạng tag để bỏ qua cookie trình duyệt hoặc tệp cookie cho các site khớp rule, mặc định có Facebook Reels
 
 ### Thay đổi
+
 - **Giao diện extension** - Làm mới popup và menu nút nổi của browser extension theo phong cách gọn, hiện đại và đồng bộ hơn với trình phát nhạc
 
 ### Sửa lỗi
+
 - **Tải được khôi phục bởi plugin** - Sửa lỗi plugin `download.failed` khôi phục file thành công nhưng item gốc vẫn bị hiển thị là thất bại
 - **Workflow plugin khi thử lại** - Sửa lỗi tải xuống thất bại khi thử lại không dùng workflow plugin mới được gán
 - **Nút nổi trong extension** - Sửa lỗi nút nổi của browser extension không hiện hoặc bị crash trên các tab đã mở sẵn trước khi extension được cài hoặc reload
@@ -115,11 +131,13 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.17.2] - 2026-06-17
 
 ### Thay đổi
+
 - **Font và icon giao diện** - Đóng gói sẵn font và icon để giao diện hiển thị ổn định mà không phụ thuộc vào CDN bên ngoài
 - **Bố cục chi tiết plugin** - Đổi phần chi tiết plugin đã import trong Cài đặt sang dạng tab cho Thông tin, Quyền được yêu cầu, và Runtime & tương thích
 - **Nút tải thêm trong Kênh** - Đổi nút Tải thêm ở màn hình duyệt Kênh và chi tiết kênh đã theo dõi sang kiểu floating giống Tìm YouTube theo từ khóa
 
 ### Sửa lỗi
+
 - **Ẩn hiện trình phát nhạc** - Sửa lỗi trình phát nhạc khi thu gọn vẫn để lại lớp phủ vô hình, có thể chặn nút bên dưới và làm nhạc phát lại từ đầu khi người dùng bấm vào vùng bị che
 - **Trạng thái hoàn tất của Kênh** - Sửa lỗi video trong kênh đã theo dõi bị mất trạng thái hoàn tất sau khi mở lại app bằng cách lưu chắc trạng thái tải thủ công và khôi phục theo đúng video ID cùng file lịch sử còn tồn tại
 - **Theo dõi trùng kênh** - Trả về record kênh đã theo dõi hiện có khi follow lại cùng URL để tránh đồng bộ video vào channel id không tồn tại
@@ -127,15 +145,18 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.17.1] - 2026-06-11
 
 ### Thêm mới
+
 - **Lên lịch cho live sắp bắt đầu** - Thêm action trực tiếp trên item trong hàng đợi để lên lịch thử tải lại khi live YouTube chưa bắt đầu
 - **Nguồn từ khóa YouTube trong Xuất dữ liệu** - Thêm nguồn từ khóa YouTube để export kết quả tìm kiếm từ Data Export
 - **Folder lưu từ CLI** - Thêm `--output` / `-o` để mỗi lượt tải được thêm từ CLI có thể dùng folder lưu tuyệt đối riêng
 
 ### Thay đổi
+
 - **Điều khiển lên lịch** - Tinh chỉnh popover lên lịch và trạng thái lịch đang chạy với preset nhanh hơn, preview rõ hơn và countdown gọn hơn
 - **Cài đặt và tài liệu CLI** - Tinh chỉnh card CLI trong General settings, bổ sung bản dịch CLI cho toàn bộ ngôn ngữ được hỗ trợ, và mở rộng hướng dẫn CLI với ghi chú cài đặt cho macOS, Windows và Linux
 
 ### Sửa lỗi
+
 - **Cập nhật FFmpeg app-managed** - Lưu version release của gói FFmpeg app-managed đã cài để check update không còn lặp khi binary FFmpeg báo version build git nội bộ
 - **Trạng thái FFmpeg** - Hiển thị FFmpeg hệ thống được tự phát hiện là System thay vì App managed, và báo lỗi verify cài đặt app-managed rõ hơn
 - **Phiên bản yt-dlp bundled** - Ưu tiên sidecar đi kèm bản app hiện tại để binary app-managed cũ không che bản bundled mới hơn
@@ -148,6 +169,7 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.17.0] - 2026-06-07
 
 ### Thêm mới
+
 - **Giao diện dòng lệnh** - Thêm CLI local `youwee` với nút cài đặt, request tải có cấu trúc và các tùy chọn chất lượng, chế độ âm thanh, chỉ thêm vào queue, playlist, phụ đề, cắt đoạn tải, tải live từ đầu và bỏ qua live
 - **Bỏ qua live** - Thêm cài đặt tải xuống để bỏ qua video đang phát trực tiếp trong giao diện YouTube và Universal
 - **Tìm kiếm tóm tắt AI** - Thêm tìm kiếm Thư viện dùng SQLite FTS5 trên tiêu đề, URL, đường dẫn file và các bản tóm tắt AI đã lưu, kèm lựa chọn phạm vi tìm trong tất cả nội dung, chỉ chi tiết hoặc chỉ tóm tắt AI
@@ -156,24 +178,29 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Cầu nối tìm kiếm YouTube cho Plugin SDK** - Mở app-managed YouTube keyword search cho plugin JavaScript qua `ctx.youwee.youtube.searchVideos(...)`, kèm bộ lọc có kiểu dữ liệu rõ ràng và hỗ trợ continuation
 
 ### Thay đổi
+
 - **Thời gian chờ AI** - Mở rộng lựa chọn Thời gian chờ khi tạo AI lên tối đa 60 phút và áp dụng timeout đã chọn vào HTTP request của các nhà cung cấp AI để hỗ trợ tóm tắt video dài
 - **Tên file database của ứng dụng** - Đổi database SQLite nội bộ từ `logs.db` sang `youwee.db`, tự động migrate từ file cũ và giữ file cũ làm backup
 
 ### Sửa lỗi
+
 - **Bilibili HTTP 412** - Thêm header giống trình duyệt cho request Bilibili qua yt-dlp để tránh lỗi `HTTP Error 412`
 
 ## [0.16.0] - 2026-06-02
 
 ### Thêm mới
+
 - **Lưu hàng đợi tải xuống** - Thêm tùy chọn trong cài đặt Tải xuống để lưu các item trong queue YouTube, Universal và Gallery vào database của ứng dụng, giúp khôi phục lại hàng đợi sau khi đóng và mở lại Youwee
 - **Xuất dữ liệu** - Thêm không gian Xuất dữ liệu mới để xuất danh sách từ playlist và kênh YouTube, chọn chính xác các cột cần lấy, lưu file ở nhiều định dạng như CSV, Excel, JSON, Markdown, HTML, SQLite và Word, đồng thời lưu file đã xuất vào Thư viện để mở lại sau
 - **Tải từ xa qua Telegram** - Thêm mục cài đặt Remote Download với điều khiển Telegram bằng long polling, nhập chat ID được phép dạng tag, popup hướng dẫn lệnh, hỗ trợ `/add`, `/download`, `/status`, `/queue`, `/stop`, `/help`, cùng cú pháp chất lượng ngắn như `720`, `audio`, và `mp3`
 
 ### Thay đổi
+
 - **Thêm vào queue khi đang tải** - Cho phép thêm URL mới vào queue YouTube, Universal và Gallery trong lúc đang tải, đồng thời worker chờ ngắn để nhận item vừa thêm trước khi kết thúc phiên tải hiện tại
 - **Chọn định dạng YouTube** - Đổi codec video mặc định của YouTube sang Auto để lượt tải mới không còn ép chọn riêng H.264 và đồng nhất hơn với Universal khi video không có stream AVC phù hợp
 
 ### Sửa lỗi
+
 - **Xung đột cài đặt deb trên Linux** - Đổi tên yt-dlp bundled sang tên binary riêng của Youwee để gói `.deb` không còn đụng với package `yt-dlp` do distro quản lý
 - **Đường dẫn dependency hệ thống** - Cải thiện resolve PATH trên Windows cho yt-dlp, FFmpeg, Deno, gallery-dl và các công cụ phụ trợ
 - **Chọn profile cookie Firefox** - Ưu tiên profile Firefox đang active từ `profiles.ini` để tải bằng cookie trình duyệt dùng đúng profile có khả năng đang lưu cookie
@@ -181,16 +208,19 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.15.1] - 2026-05-27
 
 ### Thay đổi
+
 - **Cải tiến UI và UX** - Hoàn thiện giao diện và trải nghiệm trên AI Features, metadata, phần cài đặt plugin, dialog guide, và hệ thống thông báo dùng chung để trải nghiệm Youwee đồng nhất hơn
 - **Hỗ trợ Plugin SDK v2.0.0** - Nâng cấp phần plugin lên `youwee-sdk` `v2.0.0`, gồm permission `read/write/AI` chặt chẽ hơn và hỗ trợ workspace plugin ưu tiên TypeScript
 
 ## [0.14.1] - 2026-05-24
 
 ### Thay đổi
+
 - **Luồng hướng dẫn plugin và cấp quyền** - Tinh chỉnh luồng import plugin, duyệt quyền, hướng dẫn workspace, và giao diện cấu hình để việc cài plugin, gán workflow, và đọc guide trong Settings rõ ràng hơn
 - **Tăng độ linh hoạt cho plugin author** - Cập nhật tích hợp workspace và SDK để hỗ trợ icon Lucide linh hoạt hơn và luồng test Deno gọn hơn cho người viết plugin
 
 ### Sửa lỗi
+
 - **Log runtime plugin và tóm tắt output** - Giảm log plugin bị lặp, bỏ lưu raw protocol output của kết quả plugin, và hiển thị rõ hơn các đường dẫn file đầu ra sẽ được dùng cho step tiếp theo trong log post-processing
 - **Hiển thị guide plugin và tài liệu đa ngôn ngữ** - Sửa lỗi dialog guide bị tràn nội dung và giữ lại các file `README.<locale>.md` cho plugin đã cài
 - **Hoàn thiện giao diện cấu hình plugin** - Cải thiện control multi-select, thời điểm hiển thị validation, và các prompt khi import/bật plugin để đồng bộ hơn với giao diện chung của ứng dụng
@@ -198,13 +228,16 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.14.0] - 2026-05-24
 
 ### Thêm mới
+
 - **Tag và bộ sưu tập cho Thư viện** - Thêm tag tự do và bộ sưu tập ảo cho các mục trong Thư viện, bao gồm gán ngay trên từng item, filter nhanh bằng chip, quản lý bộ sưu tập và lọc nâng cao theo tag hoặc bộ sưu tập
 - **Hệ thống plugin có ký và luồng SDK** - Thêm plugin `.ywp` có chữ ký với luồng attach/debug workspace, field cấu hình có kiểu dữ liệu rõ ràng, hướng dẫn plugin đa ngôn ngữ, duyệt quyền, gán vào workflow, xem log, và hỗ trợ đóng gói/ký bằng `youwee-sdk`
 
 ### Thay đổi
+
 - **Đồng bộ ô nhập URL của Gallery** - Cập nhật ô nhập Gallery để bám sát hơn luồng single/multiple của YouTube, gồm style nút Add, layout batch, hint URL và wording đa ngôn ngữ
 
 ### Sửa lỗi
+
 - **Crash khởi động trên Arch Linux với GBM EGL display** - Thêm fallback cho WebKitGTK trên Linux, mặc định tắt GBM renderer để tránh app bị abort khi khởi động trên một số hệ Arch-based
 
 ## [0.13.3] - 2026-05-14
@@ -214,6 +247,7 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Thay đổi
 
 ### Sửa lỗi
+
 - **Vòng lặp tải video ở kênh đã theo dõi** - Sửa regression từ tính năng phân trang khiến kênh đã theo dõi có thể bị kẹt trong trạng thái tải liên tục và không lấy danh sách video ổn định
 - **Race condition ở progress khi tải kênh** - Progress duyệt kênh giờ bỏ qua event cũ từ request trước khi người dùng đổi kênh hoặc bấm tải lại liên tục
 - **Tải thêm làm tăng sai số video mới** - Các video cũ được nạp từ những trang bổ sung của kênh sẽ không còn bị lưu là video mới, tránh sai badge và tray count
@@ -221,6 +255,7 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.13.2] - 2026-05-10
 
 ### Thêm mới
+
 - **Phân trang video kênh với Tải thêm** - Trang Kênh giờ tải mặc định 100 video đầu tiên và cho phép tải thêm theo từng đợt trong cả màn hình duyệt và màn hình chi tiết
 - **Hỗ trợ tiếng Thái** - Bổ sung bản địa hóa đầy đủ tiếng Thái cho toàn bộ ứng dụng, bao gồm màn hình giao diện, cài đặt, công cụ phụ đề, luồng tải xuống và bộ chọn ngôn ngữ
 - **Hỗ trợ tiếng Ả Rập** - Bổ sung bản địa hóa đầy đủ tiếng Ả Rập cho toàn bộ ứng dụng, bao gồm màn hình giao diện, cài đặt, công cụ phụ đề, luồng tải xuống, đồng thời thêm xử lý hướng chữ RTL
@@ -228,22 +263,26 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Thay đổi
 
 ### Sửa lỗi
+
 - **Giới hạn duyệt kênh ở 50 video** - Sửa lỗi duyệt kênh và playlist bị dừng sai ở 50 video dù vẫn còn thêm video
 - **Phân loại sai dialog lỗi cookie** - Sửa lỗi yêu cầu cookie đăng nhập mới bị hiển thị nhầm như lỗi khóa DB cookie của trình duyệt; giờ app tách riêng dialog cho lỗi DB lock và lỗi cần cookie xác thực
 
 ## [0.13.1] - 2026-04-26
 
 ### Thêm mới
+
 - **Nhà cung cấp AI LM Studio** - Thêm LM Studio làm nhà cung cấp AI nội bộ tương thích OpenAI, có endpoint local tùy chỉnh và không yêu cầu khóa API
 
 ### Thay đổi
 
 ### Sửa lỗi
+
 - **Hậu xử lý WebM 4K** - Sửa lỗi tải WebM có thể chọn nhầm stream tương thích MP4/H.264 khiến FFmpeg thất bại ở bước post-processing conversion
 
 ## [0.13.0] - 2026-04-15
 
 ### Thêm mới
+
 - **Trình phát nhạc nổi** - Thêm player âm thanh trong ứng dụng với hàng đợi, điều khiển phát, tốc độ và âm lượng
 - **Tích hợp Aria2 làm trình tải ngoài** - Bổ sung hỗ trợ `aria2c` làm external downloader với tham số tùy chỉnh và xử lý lỗi đã bản địa hóa
 - **Đổi tên file đã tải từ Queue và Thư viện** - Thêm thao tác đổi tên sau khi tải xong (queue YouTube + Universal và Thư viện), đồng bộ đường dẫn/tên trong DB và giao diện đa ngôn ngữ
@@ -251,22 +290,27 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Trang tải Gallery riêng** - Thêm menu `Gallery` mới nằm dưới Universal, có ô nhập URL riêng, import hàng loạt, hàng đợi, chọn thư mục lưu và luồng Start/Stop dành cho các nguồn kiểu gallery chạy bằng `gallery-dl`
 
 ### Thay đổi
+
 - **Xử lý queue động khi đang tải** - Worker queue giờ claim item theo thời gian thực, nên video thêm mới sẽ vào cuối hàng đợi và tự tải tiếp mà không cần bấm Start lại
 
 ### Sửa lỗi
+
 - **Ổn định test đổi tên lịch sử trên CI** - Serialize các test dùng chung DB in-memory để tránh lỗi flaky `History entry not found` khi `cargo test` chạy song song
 ## [0.12.0] - 2026-03-04
 
 ### Thêm mới
+
 - **Bộ chọn nguồn dependency (yt-dlp/FFmpeg)** - Thêm tùy chọn trong Cài đặt → Phụ thuộc để chọn dùng binary do ứng dụng quản lý hoặc do hệ thống quản lý
 - **Xác nhận an toàn khi chuyển sang nguồn hệ thống** - Thêm hộp thoại xác nhận khi đổi yt-dlp/FFmpeg sang nguồn hệ thống để tránh bấm nhầm
 
 ### Thay đổi
+
 - **Nhãn nguồn hệ thống theo hệ điều hành** - Nhãn nguồn hệ thống giờ hiển thị theo nền tảng (`Homebrew` trên macOS, `PATH` trên Windows, trình quản lý gói trên Linux)
 - **Tự động tạo ghi chú phát hành GitHub trong luồng build** - Bật `generate_release_notes` trong workflow phát hành để bản phát hành có ghi chú tự sinh
 - **Tích hợp thanh tiêu đề tùy chỉnh trên Windows** - Thay title bar native của Windows bằng control tùy chỉnh theo theme ứng dụng (vùng kéo cửa sổ, thu nhỏ/phóng to/đóng)
 
 ### Sửa lỗi
+
 - **Ghi lịch sử tải xuống trên Windows** - Bắt chính xác đường dẫn file đầu ra cuối cùng trên Windows để bản tải hoàn tất luôn được thêm vào lịch sử Thư viện
 - **Phân tích đường dẫn tải lại trên Windows** - Sửa tách thư mục output khi tải lại để xử lý đúng đường dẫn dùng dấu `\`
 - **Xử lý output yt-dlp không phải UTF-8 trên Windows** - Thêm fallback decode GBK/ANSI và xử lý `--print-to-file` để vẫn lấy đúng đường dẫn file ở locale không UTF-8
@@ -276,13 +320,16 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.11.1] - 2026-03-01
 
 ### Thêm mới
+
 - **Hỗ trợ tiếng Pháp, Bồ Đào Nha và Nga** - Bản địa hóa đầy đủ Français, Português và Русский cho toàn bộ giao diện, cài đặt, thông báo lỗi và nhãn metadata
 - **Bản địa hóa thông báo lỗi backend** - Các thông báo lỗi từ backend (lỗi tải, lỗi mạng, v.v.) giờ được dịch theo ngôn ngữ người dùng đã chọn thay vì luôn hiển thị tiếng Anh
 
 ### Thay đổi
+
 - **Tái cấu trúc chuỗi fallback transcript** - Thống nhất logic fallback transcript giữa AI summary và processing để hành vi nhất quán hơn
 
 ### Sửa lỗi
+
 - **Fallback transcript cho Douyin và TikTok** - Cải thiện trích xuất transcript cho video Douyin và TikTok trước đây bị thất bại im lặng
 - **Lỗi transcript và caption ngắn** - Lỗi transcript giờ được giữ lại để chẩn đoán thay vì bị nuốt im lặng; caption ngắn được chấp nhận là transcript hợp lệ thay vì bị từ chối
 - **Cài đặt mặc định TikTok** - Điều chỉnh cài đặt tải mặc định của TikTok cho phù hợp với quy ước nền tảng
@@ -290,19 +337,23 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.11.0] - 2026-02-20
 
 ### Thêm mới
+
 - **Browser Extension tải nhanh (Chromium + Firefox)** - Giờ đây bạn có thể gửi trang video đang mở từ trình duyệt sang Youwee và chọn `Download now` hoặc `Add to queue`
 - **Thiết lập Extension trong Cài đặt** - Thêm mục mới Cài đặt → Extension với nút tải trực tiếp và hướng dẫn cài đơn giản cho Chromium và Firefox
 
 ### Thay đổi
+
 - **Làm mới UI/UX cho trang YouTube và Universal** - Tối giản thao tác nhập link, card preview, hàng đợi và phần title bar để giao diện gọn và đồng nhất hơn
 
 ### Sửa lỗi
+
 - **Đồng bộ resolve dependency giữa các tính năng** - Chuẩn hóa luồng chọn yt-dlp/FFmpeg trong download, metadata, channels và polling nền để luôn tôn trọng nguồn đã chọn
 - **Chế độ system fail rõ ràng khi thiếu binary** - Khi chọn nguồn hệ thống mà thiếu binary, ứng dụng giờ báo lỗi rõ ràng thay vì fallback ngầm
 
 ## [0.10.1] - 2026-02-15
 
 ### Thêm mới
+
 - **Thiết lập font ASS** - Thêm tùy chỉnh font và cỡ chữ phụ đề cho xuất ASS và preview
 - **Luồng xuống dòng phụ đề** - Thêm thao tác auto xuống dòng nhanh và hỗ trợ Shift+Enter khi chỉnh nội dung
 - **Tự động thử lại có thể cấu hình** - Thêm cài đặt Auto Retry cho tải YouTube và Universal, cho phép đặt số lần thử lại và thời gian chờ để tự phục hồi khi mạng không ổn định hoặc live stream bị ngắt
@@ -310,11 +361,13 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Thay đổi
 
 ### Sửa lỗi
+
 - **Thông báo lỗi tải xuống rõ hơn** - Cải thiện thông báo lỗi yt-dlp với nguyên nhân cụ thể hơn để hỗ trợ nhận diện lỗi tạm thời và thử lại tự động chính xác hơn
 
 ## [0.10.0] - 2026-02-15
 
 ### Thêm mới
+
 - **Xưởng phụ đề** - Thêm trang phụ đề tất cả trong một cho SRT/VTT/ASS với chỉnh sửa nội dung, công cụ thời gian, tìm/thay thế, tự sửa lỗi và các tác vụ AI (Whisper, Dịch, Sửa ngữ pháp)
 - **Bộ công cụ phụ đề nâng cao** - Bổ sung timeline sóng âm/phổ tần, đồng bộ theo cảnh cắt, QC realtime theo style profile, công cụ tách/gộp, chế độ Dịch 2 cột (gốc/bản dịch), và công cụ batch cho project
 
@@ -325,17 +378,20 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.9.4] - 2026-02-14
 
 ### Thêm mới
+
 - **Chọn thư mục output cho Processing** - Thêm nút chọn thư mục lưu đầu ra trong khung chat Processing. Mặc định vẫn là thư mục của video chính, và output của AI/quick actions sẽ theo thư mục đã chọn
 - **Đính kèm nhiều loại file trong chat AI Processing** - Chat Processing hỗ trợ đính kèm ảnh/video/phụ đề (chọn file + kéo thả), hiển thị preview và metadata phù hợp theo từng loại
 - **Lối tắt đề xuất ngôn ngữ trong Cài đặt** - Thêm link nhanh trong Cài đặt → Chung để người dùng bình chọn/đề xuất ngôn ngữ tiếp theo trên GitHub Discussions
 - **Kiểm tra cập nhật app từ system tray** - Thêm hành động mới trong tray để kiểm tra cập nhật Youwee trực tiếp
 
 ### Thay đổi
+
 - **Sinh lệnh subtitle/merge ổn định hơn** - Luồng tạo lệnh Processing ưu tiên xử lý deterministic cho chèn phụ đề và ghép nhiều video (bao gồm gợi ý thứ tự intro/outro) trước khi fallback sang AI
 - **Đổi tên mục kiểm tra kênh trong tray cho rõ nghĩa** - Đổi "Kiểm tra tất cả" thành "Kiểm tra kênh theo dõi ngay" để thể hiện đúng hành vi kiểm tra các kênh đã theo dõi
 - **Đơn giản hóa tiêu đề trang** - Bỏ icon phía trước tiêu đề ở các trang Metadata, Processing và AI Summary để giao diện gọn hơn
 
 ### Sửa lỗi
+
 - **Lỗi lấy thông tin video khi dùng xác thực/proxy** - Sửa thứ tự tham số yt-dlp để cờ cookie và proxy được chèn trước dấu phân tách URL `--`, tránh lỗi `Failed to fetch video info` trong khi luồng tải video vẫn hoạt động đúng
 - **Kênh Stable luôn báo có bản cập nhật** - Sửa logic kiểm tra cập nhật yt-dlp cho stable/nightly để đọc phiên bản thực từ binary đã cài (`--version`) thay vì chỉ dựa vào metadata tồn tại file, giúp hiển thị đúng trạng thái "Đã cập nhật" sau khi cập nhật xong
 - **Trạng thái cập nhật Bundled và binary đang dùng không đồng bộ** - Sửa luồng cập nhật bundled để hiển thị phiên bản mới có sẵn trong Settings và ưu tiên dùng binary `app_data/bin/yt-dlp` đã cập nhật khi có, giúp cập nhật bundled có hiệu lực thực tế
@@ -346,20 +402,24 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.9.3] - 2026-02-14
 
 ### Thêm mới
+
 - **Tải phụ đề trong Metadata** - Thêm nút chuyển đổi phụ đề trong thanh cài đặt Metadata để tải phụ đề (thủ công + tự động tạo) cùng với metadata. Bao gồm popover để chọn ngôn ngữ và định dạng (SRT/VTT/ASS)
 
 ### Thay đổi
+
 - **Cải thiện UX nhập thời gian cắt video** - Thay thế ô nhập text thường bằng ô nhập tự động định dạng, tự chèn `:` khi gõ (ví dụ `1030` → `10:30`, `10530` → `1:05:30`). Placeholder thông minh hiển thị `M:SS` hoặc `H:MM:SS` dựa theo độ dài video. Kiểm tra realtime với viền đỏ khi định dạng sai hoặc thời gian bắt đầu >= kết thúc. Hiện tổng thời lượng video khi có
 
 ## [0.9.2] - 2026-02-13
 
 ### Thêm mới
+
 - **Tải video theo phân đoạn thời gian** - Chỉ tải một đoạn video bằng cách đặt thời gian bắt đầu và kết thúc (ví dụ: 10:30 đến 14:30). Có thể cài đặt cho từng video trên cả hàng đợi YouTube và Universal qua biểu tượng kéo. Sử dụng `--download-sections` của yt-dlp
 - **Tự động kiểm tra cập nhật FFmpeg khi khởi động** - Kiểm tra cập nhật FFmpeg giờ chạy tự động khi mở app (cho bản cài đặt tích hợp). Nếu có bản cập nhật, sẽ hiển thị trong Cài đặt > Phụ thuộc mà không cần bấm nút làm mới
 
 ## [0.9.1] - 2026-02-13
 
 ### Sửa lỗi
+
 - **Ứng dụng crash trên macOS không có Homebrew** - Sửa lỗi crash khi khởi động do thiếu thư viện động `liblzma`. Crate `xz2` giờ dùng static linking, giúp ứng dụng hoàn toàn độc lập không cần Homebrew hay thư viện hệ thống
 - **Tự động tải bỏ qua cài đặt người dùng** - Tự động tải kênh giờ áp dụng cài đặt riêng cho mỗi kênh (chế độ Video/Âm thanh, chất lượng, định dạng, codec, bitrate) thay vì dùng giá trị mặc định. Mỗi kênh có cài đặt tải riêng có thể cấu hình trong bảng cài đặt kênh
 - **Tăng cường bảo mật** - FFmpeg giờ dùng mảng tham số thay vì parse chuỗi shell, chặn command injection. Thêm validate URL scheme và `--` separator cho mọi lệnh yt-dlp để chặn option injection. Bật Content Security Policy, xóa quyền shell thừa, và thêm `isSafeUrl` cho các link hiển thị
@@ -372,16 +432,19 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.9.0] - 2026-02-12
 
 ### Thêm mới
+
 - **Theo dõi kênh & Tải tự động** - Theo dõi các kênh YouTube, duyệt video, chọn và tải hàng loạt với đầy đủ tùy chọn chất lượng/codec/định dạng. Polling nền phát hiện video mới với thông báo desktop và badge đếm video mới theo kênh. Panel kênh theo dõi thu gọn được, hỗ trợ thu nhỏ xuống system tray
 - **Xác nhận xem trước file lớn** - Ngưỡng kích thước file có thể cấu hình (mặc định 300MB) hiển thị hộp thoại xác nhận trước khi tải video lớn trong trang Xử lý. Điều chỉnh ngưỡng tại Cài đặt → Chung → Xử lý
 - **Tìm kiếm cài đặt đa ngôn ngữ** - Tìm kiếm trong cài đặt giờ hoạt động với mọi ngôn ngữ. Tìm bằng tiếng Việt (ví dụ "giao diện") hoặc tiếng Trung đều cho kết quả. Từ khóa tiếng Anh vẫn hoạt động như dự phòng
 
 ### Sửa lỗi
+
 - **Trang Xử lý bị trắng màn hình với video 4K VP9/AV1/HEVC (Linux)** - Bộ giải mã AAC của GStreamer gây crash WebKitGTK khi phát video VP9/AV1/HEVC. Preview giờ dùng phương pháp dual-element: video H.264 không âm thanh + file WAV riêng biệt đồng bộ qua JavaScript, hoàn toàn bỏ qua đường dẫn AAC bị lỗi. Nếu phát video vẫn thất bại, tự động chuyển sang ảnh thu nhỏ JPEG tĩnh. Hoạt động trên macOS, Windows và Linux
 
 ## [0.8.2] - 2026-02-11
 
 ### Thêm mới
+
 - **Ghi chú cập nhật đa ngôn ngữ** - Hộp thoại cập nhật hiển thị ghi chú phát hành theo ngôn ngữ người dùng (Tiếng Anh, Tiếng Việt, Tiếng Trung). CI tự động trích xuất nhật ký thay đổi từ các file CHANGELOG theo ngôn ngữ
 - **Tùy chọn chất lượng 8K/4K/2K cho Universal** - Dropdown chất lượng giờ có thêm 8K Ultra HD, 4K Ultra HD và 2K QHD, giống như tab YouTube. Tự động chuyển sang chất lượng cao nhất có sẵn nếu nguồn không hỗ trợ
 - **Nút bật/tắt "Phát từ đầu" cho Universal** - Nút mới trong Cài đặt nâng cao để ghi live stream từ đầu thay vì từ thời điểm hiện tại. Sử dụng flag `--live-from-start` của yt-dlp
@@ -389,6 +452,7 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Nhận diện nền tảng thông minh hơn** - Thư viện giờ nhận diện và gắn nhãn chính xác hơn 1800 trang web được yt-dlp hỗ trợ (Bilibili, Dailymotion, SoundCloud, v.v.) thay vì hiển thị "Khác". Thêm tab lọc Bilibili
 
 ### Sửa lỗi
+
 - **Trang Xử lý bị treo khi upload video (Linux)** - File video được đọc toàn bộ vào RAM qua `readFile()`, gây tràn bộ nhớ và màn hình trắng. Giờ sử dụng giao thức asset của Tauri để stream video trực tiếp mà không cần tải vào bộ nhớ. Thêm Error Boundary để ngăn màn hình trắng, xử lý lỗi video với thông báo cụ thể theo codec, dọn dẹp blob URL chống rò rỉ bộ nhớ, và nhận dạng MIME type đúng cho các định dạng không phải MP4
 - **Thumbnail bị lỗi trong Thư viện** - Sửa thumbnail từ các trang như Bilibili sử dụng URL HTTP. Thumbnail giờ hiển thị biểu tượng thay thế khi không tải được
 - **Thư viện không làm mới khi chuyển trang** - Thư viện giờ tự động tải dữ liệu mới nhất khi chuyển đến trang thay vì phải làm mới thủ công

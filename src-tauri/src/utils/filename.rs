@@ -51,10 +51,10 @@ mod tests {
     #[test]
     fn calc_trim_filenames_uses_byte_length_for_non_ascii_paths() {
         let path = "G:\\下载\\Youwee\\very-long-non-ascii-output-directory-name";
-        assert!(path.as_bytes().len() > path.chars().count());
+        assert!(path.len() > path.chars().count());
 
         let expected = (WINDOWS_MAX_PATH
-            .saturating_sub(path.as_bytes().len())
+            .saturating_sub(path.len())
             .saturating_sub(RESERVED_SUFFIX_BYTES) as u32)
             .clamp(MIN_TRIM_FILENAMES, MAX_TRIM_FILENAMES);
         assert_eq!(calc_trim_filenames_bytes(path), expected);

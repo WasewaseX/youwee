@@ -386,18 +386,11 @@ Example:
     "appVersion": ">=0.15.0 <0.16.0",
     "sdkVersion": ">=2.3.0 <3.0.0"
   },
-  "triggers": [
-    "download.completed"
-  ],
+  "triggers": ["download.completed"],
   "permissions": {
     "network": true,
-    "fs": [
-      "fs.payload-file.read",
-      "fs.user-selected.write"
-    ],
-    "tools": [
-      "tool.ffmpeg.run"
-    ]
+    "fs": ["fs.payload-file.read", "fs.user-selected.write"],
+    "tools": ["tool.ffmpeg.run"]
   },
   "timeoutSec": 300,
   "i18n": {
@@ -520,9 +513,9 @@ const bytes = await ctx.youwee.fs.readBytes(ctx.file.path);
 await ctx.youwee.fs.ensureDir(outputDirectory);
 await ctx.youwee.fs.writeText(`${outputDirectory}/result.txt`, content);
 await ctx.youwee.fs.writeBytes(`${outputDirectory}/copy.bin`, bytes);
-const tempDirectory = await ctx.youwee.fs.tempDir("my-plugin-");
+const tempDirectory = await ctx.youwee.fs.tempDir('my-plugin-');
 const scratchFile = `${tempDirectory}/scratch.txt`;
-await ctx.youwee.fs.writeText(scratchFile, "temporary data");
+await ctx.youwee.fs.writeText(scratchFile, 'temporary data');
 await ctx.youwee.fs.removeFile(scratchFile);
 ```
 
@@ -565,18 +558,18 @@ Plugins can ask Youwee to perform the same app-managed YouTube keyword search us
 
 ```ts
 const results = await ctx.youwee.youtube.searchVideos({
-  query: "free hd video no copyright",
+  query: 'free hd video no copyright',
   limit: 20,
   filters: {
-    uploadDate: "thisMonth",
-    duration: "medium",
-    sort: "viewCount",
-    features: ["hd", "creativeCommons"],
+    uploadDate: 'thisMonth',
+    duration: 'medium',
+    sort: 'viewCount',
+    features: ['hd', 'creativeCommons'],
   },
 });
 
 for (const video of results.videos) {
-  ctx.log.info("Found YouTube video", {
+  ctx.log.info('Found YouTube video', {
     title: video.title,
     url: video.url,
     channel: video.channel,
@@ -613,18 +606,18 @@ Use `continuation` to load more results with the same query/filter context:
 
 ```ts
 const firstPage = await ctx.youwee.youtube.searchVideos({
-  query: "lofi study music",
+  query: 'lofi study music',
   limit: 20,
 });
 
 if (firstPage.continuation) {
   const nextPage = await ctx.youwee.youtube.searchVideos({
-    query: "lofi study music",
+    query: 'lofi study music',
     continuation: firstPage.continuation,
     limit: 20,
   });
 
-  ctx.log.info("Loaded more videos", { count: nextPage.videos.length });
+  ctx.log.info('Loaded more videos', { count: nextPage.videos.length });
 }
 ```
 
@@ -678,10 +671,7 @@ Example:
       "inputType": "select",
       "label": "Upload mode",
       "defaultValue": "copy",
-      "options": [
-        { "value": "copy", "label": "Copy" },
-        { "value": "move", "label": "Move" }
-      ]
+      "options": [{ "value": "copy", "label": "Copy" }, { "value": "move", "label": "Move" }]
     },
     {
       "key": "apiToken",
@@ -724,21 +714,19 @@ These are checked:
 Example:
 
 ```ts
-import { definePlugin, triggers, type PluginDefinition } from "youwee-sdk";
+import { definePlugin, triggers, type PluginDefinition } from 'youwee-sdk';
 
 const plugin = definePlugin({
   meta: {
-    name: "GG Drive",
-    version: "0.1.0",
-    description: "Upload completed downloads to Google Drive."
+    name: 'GG Drive',
+    version: '0.1.0',
+    description: 'Upload completed downloads to Google Drive.',
   },
   hooks: {
     [triggers.downloadCompleted]: async (ctx) => {
-      ctx.log.info(ctx.i18n.t("upload.started", { filename: ctx.file.name }));
+      ctx.log.info(ctx.i18n.t('upload.started', { filename: ctx.file.name }));
 
-      return ctx.ok(
-        ctx.i18n.t("upload.success", { filename: ctx.file.name }),
-      );
+      return ctx.ok(ctx.i18n.t('upload.success', { filename: ctx.file.name }));
     },
   },
 } satisfies PluginDefinition);
@@ -778,29 +766,29 @@ Top-level sections include:
 Common fields:
 
 ```ts
-ctx.download.jobId
-ctx.file.path
-ctx.file.name
-ctx.media.url
-ctx.media.title
-ctx.download.kind
+ctx.download.jobId;
+ctx.file.path;
+ctx.file.name;
+ctx.media.url;
+ctx.media.title;
+ctx.download.kind;
 ```
 
 Youwee app bridge examples:
 
 ```ts
 await ctx.youwee.fs.readText(ctx.file.path);
-await ctx.youwee.tools.ytdlp.run(["--version"]);
-await ctx.youwee.youtube.searchVideos({ query: "ambient video", limit: 10 });
+await ctx.youwee.tools.ytdlp.run(['--version']);
+await ctx.youwee.youtube.searchVideos({ query: 'ambient video', limit: 10 });
 ```
 
 Plugin configuration:
 
 ```ts
-ctx.config.get("driveFolderId")
-ctx.config.require("apiToken")
-ctx.config.has("uploadMode")
-ctx.config.all()
+ctx.config.get('driveFolderId');
+ctx.config.require('apiToken');
+ctx.config.has('uploadMode');
+ctx.config.all();
 ```
 
 Use `ctx.config` for values declared in `plugin.json` under `configFields`.
@@ -904,9 +892,9 @@ locales/
 Use:
 
 ```ts
-ctx.i18n.t("upload.started", { filename: ctx.file.name })
-ctx.i18n.has("upload.success")
-ctx.i18n.raw("upload.success")
+ctx.i18n.t('upload.started', { filename: ctx.file.name });
+ctx.i18n.has('upload.success');
+ctx.i18n.raw('upload.success');
 ```
 
 The SDK automatically uses:
@@ -1137,9 +1125,9 @@ The SDK exports:
 Runtime access:
 
 ```ts
-ctx.youwee.sdk.version
-ctx.youwee.sdk.checkAppVersion(">=0.15.0 <0.16.0")
-ctx.youwee.sdk.assertAppVersion(">=0.15.0 <0.16.0")
+ctx.youwee.sdk.version;
+ctx.youwee.sdk.checkAppVersion('>=0.15.0 <0.16.0');
+ctx.youwee.sdk.assertAppVersion('>=0.15.0 <0.16.0');
 ```
 
 Use these when your plugin depends on specific app features.
@@ -1277,16 +1265,16 @@ values into the runtime.
 `src/plugin.ts`
 
 ```ts
-import { definePlugin, triggers, type PluginDefinition } from "youwee-sdk";
+import { definePlugin, triggers, type PluginDefinition } from 'youwee-sdk';
 
 const plugin = definePlugin({
   meta: {
-    name: "Example",
-    version: "0.1.0",
+    name: 'Example',
+    version: '0.1.0',
   },
   hooks: {
     [triggers.downloadCompleted]: async (ctx) => {
-      ctx.log.info("Plugin executed", {
+      ctx.log.info('Plugin executed', {
         filename: ctx.file.name,
       });
 

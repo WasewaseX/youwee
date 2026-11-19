@@ -2,29 +2,29 @@
 
 <div align="center">
 
-  [![English](https://img.shields.io/badge/lang-English-blue)](../README.md)
-  [![Tiếng Việt](https://img.shields.io/badge/lang-Tiếng_Việt-red)](README.vi.md)
-  [![简体中文](https://img.shields.io/badge/lang-简体中文-green)](README.zh-CN.md)
-  ![Français](https://img.shields.io/badge/lang-Français-0055A4)
-  ![Русский](https://img.shields.io/badge/lang-Русский-1F5FBF)
-  ![العربية](https://img.shields.io/badge/lang-%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9-0A8F6A)
-  ![ไทย](https://img.shields.io/badge/lang-%E0%B9%84%E0%B8%97%E0%B8%A2-7B1FA2)
-  ![Português](https://img.shields.io/badge/lang-Português-009C3B)
-  ![日本語](https://img.shields.io/badge/lang-%E6%97%A5%E6%9C%AC%E8%AA%9E-E60012)
-  ![Español](https://img.shields.io/badge/lang-Espa%C3%B1ol-C60B1E)
-  [![Vote for next language](https://img.shields.io/badge/Vote-Ngôn_ngữ_tiếp_theo-orange?logo=github)](https://github.com/vanloctech/youwee/discussions/18)
+[![English](https://img.shields.io/badge/lang-English-blue)](../README.md)
+[![Tiếng Việt](https://img.shields.io/badge/lang-Tiếng_Việt-red)](README.vi.md)
+[![简体中文](https://img.shields.io/badge/lang-简体中文-green)](README.zh-CN.md)
+![Français](https://img.shields.io/badge/lang-Français-0055A4)
+![Русский](https://img.shields.io/badge/lang-Русский-1F5FBF)
+![العربية](https://img.shields.io/badge/lang-%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9-0A8F6A)
+![ไทย](https://img.shields.io/badge/lang-%E0%B9%84%E0%B8%97%E0%B8%A2-7B1FA2)
+![Português](https://img.shields.io/badge/lang-Português-009C3B)
+![日本語](https://img.shields.io/badge/lang-%E6%97%A5%E6%9C%AC%E8%AA%9E-E60012)
+![Español](https://img.shields.io/badge/lang-Espa%C3%B1ol-C60B1E)
+[![Vote for next language](https://img.shields.io/badge/Vote-Ngôn_ngữ_tiếp_theo-orange?logo=github)](https://github.com/vanloctech/youwee/discussions/18)
 
   <a href="https://youwee.app">
     <img src="../src-tauri/icons/icon.png" alt="Youwee Logo" width="128" height="128">
   </a>
-  
-  **GUI yt-dlp & trình tải/xử lý video đẹp mắt, toàn diện - miễn phí & mã nguồn mở**
 
-  [![Downloads](https://img.shields.io/github/downloads/vanloctech/youwee/total?label=Downloads)](https://github.com/vanloctech/youwee/releases)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-  [![Reddit](https://img.shields.io/badge/Reddit-r%2Fyouwee-FF4500?logo=reddit&logoColor=white)](https://www.reddit.com/r/youwee)
-  [![Website](https://img.shields.io/badge/Website-youwee.app-0EA5E9)](https://youwee.app)
-  [![Discord](https://img.shields.io/badge/Discord-Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/yCrs9hcw)
+**GUI yt-dlp & trình tải/xử lý video đẹp mắt, toàn diện - miễn phí & mã nguồn mở**
+
+[![Downloads](https://img.shields.io/github/downloads/vanloctech/youwee/total?label=Downloads)](https://github.com/vanloctech/youwee/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Reddit](https://img.shields.io/badge/Reddit-r%2Fyouwee-FF4500?logo=reddit&logoColor=white)](https://www.reddit.com/r/youwee)
+[![Website](https://img.shields.io/badge/Website-youwee.app-0EA5E9)](https://youwee.app)
+[![Discord](https://img.shields.io/badge/Discord-Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/yCrs9hcw)
 </div>
 
 ---
@@ -95,25 +95,26 @@ Chỉ sử dụng Youwee với nội dung bạn sở hữu, được phép sử 
 ### Tải về cho nền tảng của bạn
 
 > ⚠️ **Lưu ý**: Ứng dụng chưa được ký bằng chứng chỉ Apple Developer. Nếu macOS chặn ứng dụng, hãy chạy:
+>
 > ```bash
 > xattr -cr /Applications/Youwee.app
 > ```
 
-| Nền tảng | Tải về |
-|----------|--------|
-| **Windows** (x64) | [Tải .msi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Windows.msi) · [Tải .exe](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Windows-Setup.exe) |
-| **macOS** (Apple Silicon) | [Tải .dmg](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Mac-Apple-Silicon.dmg) |
-| **macOS** (Intel) | [Tải .dmg](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Mac-Intel.dmg) |
-| **Linux** (x64) | [Tải .deb](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.deb) · [Tải .flatpak](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.flatpak) · [Tải .AppImage](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.AppImage) (AppImage có thể cần FUSE) |
+| Nền tảng                  | Tải về                                                                                                                                                                                                                                                                                                                            |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Windows** (x64)         | [Tải .msi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Windows.msi) · [Tải .exe](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Windows-Setup.exe)                                                                                                                                 |
+| **macOS** (Apple Silicon) | [Tải .dmg](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Mac-Apple-Silicon.dmg)                                                                                                                                                                                                                            |
+| **macOS** (Intel)         | [Tải .dmg](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Mac-Intel.dmg)                                                                                                                                                                                                                                    |
+| **Linux** (x64)           | [Tải .deb](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.deb) · [Tải .flatpak](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.flatpak) · [Tải .AppImage](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.AppImage) (AppImage có thể cần FUSE) |
 
 > Xem tất cả các phiên bản tại [trang Releases](https://github.com/vanloctech/youwee/releases)
 
 ### Tiện ích mở rộng trình duyệt (Chromium + Firefox)
 
-| Trình duyệt | Tải về |
-|-------------|--------|
-| **Chromium** (Chrome/Edge/Brave/Opera/Vivaldi/Arc/Coc Coc) | [Tải .zip](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Chromium.zip) |
-| **Firefox** | [Tải .xpi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Firefox-signed.xpi) |
+| Trình duyệt                                                | Tải về                                                                                                        |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Chromium** (Chrome/Edge/Brave/Opera/Vivaldi/Arc/Coc Coc) | [Tải .zip](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Chromium.zip)       |
+| **Firefox**                                                | [Tải .xpi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Firefox-signed.xpi) |
 
 - Gửi link từ tab hiện tại sang Youwee chỉ với 1 lần bấm (`Download now` hoặc `Add to queue`)
 - Nút nổi hỗ trợ chọn `Video/Audio` + chất lượng trên các trang được hỗ trợ

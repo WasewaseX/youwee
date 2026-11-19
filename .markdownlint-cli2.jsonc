@@ -1,0 +1,11 @@
+{
+  "config": {
+    "line-length": false,
+    "no-inline-html": false,
+    "first-line-h1": false,
+    "single-trailing-newline": true,
+    "commands-show-output": false
+  },
+  "globs": ["**/*.md", "!node_modules"],
+  "ignores": ["node_modules", "CHANGELOG.md"]
+}

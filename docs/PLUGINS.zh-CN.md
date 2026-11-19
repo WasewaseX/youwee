@@ -2,9 +2,9 @@
 
 <div align="center">
 
-  [![English](https://img.shields.io/badge/lang-English-blue)](../PLUGINS.md)
-  [![Tiếng Việt](https://img.shields.io/badge/lang-Tiếng_Việt-red)](PLUGINS.vi.md)
-  [![简体中文](https://img.shields.io/badge/lang-简体中文-green)](PLUGINS.zh-CN.md)
+[![English](https://img.shields.io/badge/lang-English-blue)](../PLUGINS.md)
+[![Tiếng Việt](https://img.shields.io/badge/lang-Tiếng_Việt-red)](PLUGINS.vi.md)
+[![简体中文](https://img.shields.io/badge/lang-简体中文-green)](PLUGINS.zh-CN.md)
 
 </div>
 
@@ -14,10 +14,10 @@ Youwee 支持已签名的 `.ywp` 插件，用于下载后的工作流。插件�
 
 ## 支持的插件
 
-| 插件 | 功能 | 触发器 | 权限 | 链接 |
-| --- | --- | --- | --- | --- |
-| **Notification Webhooks** | 当下载完成或失败时，将下载通知发送到 Telegram 或 Discord。 | `download.completed`, `download.failed` | 网络访问 | [仓库](https://github.com/vanloctech/youwee-plugin-notification-webhooks) · [最新版本](https://github.com/vanloctech/youwee-plugin-notification-webhooks/releases/latest) |
-| **Google Drive Upload** | 将已完成的下载文件上传到配置好的 Google Drive 文件夹。 | `download.completed` | 网络访问，读取触发器 payload 中的已下载文件 | [仓库](https://github.com/vanloctech/youwee-plugin-gg-drive-upload) · [最新版本](https://github.com/vanloctech/youwee-plugin-gg-drive-upload/releases/latest) |
+| 插件                      | 功能                                                       | 触发器                                  | 权限                                        | 链接                                                                                                                                                                      |
+| ------------------------- | ---------------------------------------------------------- | --------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Notification Webhooks** | 当下载完成或失败时，将下载通知发送到 Telegram 或 Discord。 | `download.completed`, `download.failed` | 网络访问                                    | [仓库](https://github.com/vanloctech/youwee-plugin-notification-webhooks) · [最新版本](https://github.com/vanloctech/youwee-plugin-notification-webhooks/releases/latest) |
+| **Google Drive Upload**   | 将已完成的下载文件上传到配置好的 Google Drive 文件夹。     | `download.completed`                    | 网络访问，读取触发器 payload 中的已下载文件 | [仓库](https://github.com/vanloctech/youwee-plugin-gg-drive-upload) · [最新版本](https://github.com/vanloctech/youwee-plugin-gg-drive-upload/releases/latest)             |
 
 ## 安装插件
 

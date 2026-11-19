@@ -1,6 +1,6 @@
 name: youwee
 base: core22
-version: '0.17.0'
+version: "0.17.0"
 summary: Ultimate yt-dlp GUI & Video Downloader - Free & Open Source
 description: |
   Youwee is a modern desktop app for downloading, organizing, and processing

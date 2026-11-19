@@ -3,11 +3,11 @@ name: Build & Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   workflow_dispatch:
     inputs:
       release:
-        description: 'Create a release'
+        description: "Create a release"
         required: false
         default: false
         type: boolean
@@ -32,7 +32,7 @@ jobs:
             friendly_name: Mac-Apple-Silicon
             yt_dlp_url: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos
             yt_dlp_name: youwee-yt-dlp-aarch64-apple-darwin
-          
+
           # macOS Intel (yt-dlp_macos is Universal Binary for both Intel and Apple Silicon)
           - platform: macos-15
             target: x86_64-apple-darwin
@@ -41,7 +41,7 @@ jobs:
             friendly_name: Mac-Intel
             yt_dlp_url: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos
             yt_dlp_name: youwee-yt-dlp-x86_64-apple-darwin
-          
+
           # Linux x86_64
           - platform: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
@@ -50,7 +50,7 @@ jobs:
             friendly_name: Linux
             yt_dlp_url: https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux
             yt_dlp_name: youwee-yt-dlp-x86_64-unknown-linux-gnu
-          
+
           # Windows x86_64
           - platform: windows-latest
             target: x86_64-pc-windows-msvc
@@ -61,7 +61,7 @@ jobs:
             yt_dlp_name: youwee-yt-dlp-x86_64-pc-windows-msvc.exe
 
     runs-on: ${{ matrix.platform }}
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -79,7 +79,7 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: './src-tauri -> target'
+          workspaces: "./src-tauri -> target"
           key: ${{ matrix.target }}
 
       - name: Install Linux dependencies
@@ -381,7 +381,7 @@ jobs:
     needs: [build, flatpak, extension]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -404,7 +404,7 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           echo "Extracting changelog for version: $VERSION"
-          
+
           # Function to extract changelog section for a given file
           extract_changelog() {
             local file="$1"
@@ -423,12 +423,12 @@ jobs:
               END { print content }
             ' "$file"
           }
-          
+
           # Function to convert content to JSON-safe string
           to_json_safe() {
             echo "$1" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed 's/$/\\n/' | tr -d '\n' | sed 's/\\n$//'
           }
-          
+
           # Extract English changelog (primary)
           CHANGELOG_CONTENT=$(extract_changelog "CHANGELOG.md")
           if [ -z "$CHANGELOG_CONTENT" ]; then
@@ -437,14 +437,14 @@ jobs:
           echo "$CHANGELOG_CONTENT" > CHANGELOG_EXTRACT.md
           CHANGELOG_JSON=$(to_json_safe "$CHANGELOG_CONTENT")
           echo "$CHANGELOG_JSON" > CHANGELOG_JSON.txt
-          
+
           # Extract Vietnamese changelog
           CHANGELOG_VI=$(extract_changelog "docs/CHANGELOG.vi.md")
           if [ -n "$CHANGELOG_VI" ]; then
             CHANGELOG_VI_JSON=$(to_json_safe "$CHANGELOG_VI")
             echo "$CHANGELOG_VI_JSON" > CHANGELOG_VI_JSON.txt
           fi
-          
+
           # Extract Chinese changelog
           CHANGELOG_ZH=$(extract_changelog "docs/CHANGELOG.zh-CN.md")
           if [ -n "$CHANGELOG_ZH" ]; then
@@ -465,7 +465,7 @@ jobs:
             CHANGELOG_RU_JSON=$(to_json_safe "$CHANGELOG_RU")
             echo "$CHANGELOG_RU_JSON" > CHANGELOG_RU_JSON.txt
           fi
-          
+
           echo "Extracted changelog:"
           cat CHANGELOG_EXTRACT.md
 
@@ -473,14 +473,14 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          
+
           # Read the JSON-safe changelogs
           NOTES=$(cat CHANGELOG_JSON.txt 2>/dev/null || echo "Youwee $GITHUB_REF_NAME - Check release notes for details")
           NOTES_VI=$(cat CHANGELOG_VI_JSON.txt 2>/dev/null || echo "")
           NOTES_ZH=$(cat CHANGELOG_ZH_JSON.txt 2>/dev/null || echo "")
           NOTES_FR=$(cat CHANGELOG_FR_JSON.txt 2>/dev/null || echo "")
           NOTES_RU=$(cat CHANGELOG_RU_JSON.txt 2>/dev/null || echo "")
-          
+
           # Build notes fields
           NOTES_EXTRA=""
           if [ -n "$NOTES_VI" ]; then
@@ -499,7 +499,7 @@ jobs:
             NOTES_EXTRA="$NOTES_EXTRA
             \"notes_ru\": \"$NOTES_RU\","
           fi
-          
+
           # Find signature files and create platform entries
           cat > latest.json << EOF
           {
@@ -508,9 +508,9 @@ jobs:
             "pub_date": "$PUB_DATE",
             "platforms": {
           EOF
-          
+
           FIRST=true
-          
+
           # macOS Apple Silicon
           AARCH64_SIG=$(find artifacts -name "Youwee-aarch64.app.tar.gz.sig" 2>/dev/null | head -1)
           if [ -n "$AARCH64_SIG" ] && [ -f "$AARCH64_SIG" ]; then
@@ -524,7 +524,7 @@ jobs:
             }
           PLATFORM
           fi
-          
+
           # macOS Intel
           X86_64_SIG=$(find artifacts -name "Youwee-x86_64.app.tar.gz.sig" 2>/dev/null | head -1)
           if [ -n "$X86_64_SIG" ] && [ -f "$X86_64_SIG" ]; then
@@ -538,7 +538,7 @@ jobs:
             }
           PLATFORM
           fi
-          
+
           # Linux
           LINUX_SIG=$(find artifacts -name "*.AppImage.sig" 2>/dev/null | head -1)
           if [ -n "$LINUX_SIG" ] && [ -f "$LINUX_SIG" ]; then
@@ -552,7 +552,7 @@ jobs:
               }
           PLATFORM
           fi
-          
+
           # Windows NSIS
           WIN_SIG=$(find artifacts -name "*.exe.sig" 2>/dev/null | head -1)
           if [ -n "$WIN_SIG" ] && [ -f "$WIN_SIG" ]; then
@@ -566,25 +566,25 @@ jobs:
               }
           PLATFORM
           fi
-          
+
           # Close JSON
           cat >> latest.json << EOF
             }
           }
           EOF
-          
+
           echo "Generated latest.json:"
           cat latest.json
 
       - name: Generate SHA256 checksums
         run: |
           cd artifacts
-          
+
           # Create SHA256SUMS.txt with proper format
           echo "# SHA256 Checksums for Youwee $GITHUB_REF_NAME" > ../SHA256SUMS.txt
           echo "# Generated: $(date -u)" >> ../SHA256SUMS.txt
           echo "" >> ../SHA256SUMS.txt
-          
+
           # Generate checksums for all installer files
           find . -type f \( \
             -name "*.dmg" -o \
@@ -601,7 +601,7 @@ jobs:
             hash=$(sha256sum "$file" | cut -d' ' -f1)
             echo "$hash  $filename" >> ../SHA256SUMS.txt
           done
-          
+
           cd ..
           echo "Generated SHA256SUMS.txt:"
           cat SHA256SUMS.txt
@@ -609,25 +609,25 @@ jobs:
       - name: Create release body
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          
+
           # Start with header
           cat > RELEASE_BODY.md << 'HEADER'
           # Youwee ${{ github.ref_name }}
-          
+
           Beautiful and Ultimate yt-dlp GUI & Video Downloader - Processing - Free & Open Source
-          
+
           HEADER
-          
+
           # Add What's New section from changelog
           echo "## What's New" >> RELEASE_BODY.md
           echo "" >> RELEASE_BODY.md
           cat CHANGELOG_EXTRACT.md >> RELEASE_BODY.md
           echo "" >> RELEASE_BODY.md
-          
+
           # Add download section
           cat >> RELEASE_BODY.md << 'DOWNLOADS'
           ## Download
-          
+
           | Platform | File | Description |
           |----------|------|-------------|
           | 🍎 **Mac (M1/M2/M3/M4)** | `Youwee-Mac-Apple-Silicon.dmg` | For Apple Silicon Macs |
@@ -639,12 +639,12 @@ jobs:
           | 🐧 **Linux** | `Youwee-Linux.AppImage` | Portable fallback, may require FUSE |
           | 🌐 **Extension (Chromium)** | `Youwee-Extension-Chromium.zip` | Unzip and load unpacked on Chrome/Edge/Brave |
           | 🦊 **Extension (Firefox)** | `Youwee-Extension-Firefox-signed.xpi` | Signed unlisted add-on for Firefox stable |
-          
+
           ## 📋 Requirements
           - **Windows**: Windows 10 or later
           - **macOS**: 10.15 (Catalina) or later  
           - **Linux**: Ubuntu 20.04 or equivalent
-          
+
           ## Optional
           - **FFmpeg** - for best video/audio quality (auto-download available in Settings)
           - **Gallery-dl** - for download images from supported sites (self-setup required)
@@ -654,13 +654,13 @@ jobs:
           - Firefox: download `Youwee-Extension-Firefox-signed.xpi` and open it directly to install.
 
           ## Verify Downloads
-          
+
           Download `SHA256SUMS.txt` and verify:
           ```bash
           sha256sum -c SHA256SUMS.txt
           ```
           DOWNLOADS
-          
+
           echo "Generated RELEASE_BODY.md:"
           cat RELEASE_BODY.md
 

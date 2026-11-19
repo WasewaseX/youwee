@@ -1,0 +1,35 @@
+# Reusable quality and security gates from WasewaseX/master-ci.
+#
+# Calls the aggregate `required-quality` workflow (master-ci + CodeQL) so a
+# single required check gates a merge, including a red CodeQL analysis.
+# Required check name once merged: `required-quality-check / gate`.
+#
+# Pinned by commit SHA (v2.9.1) for supply-chain integrity; Dependabot can
+# keep the reference current.
+#
+# `run_node: false` is deliberate: master-ci's Node installer supports
+# npm/pnpm/yarn lockfiles but not bun.lock, so its npm fallback would fight
+# the bun-managed tree. TypeScript quality (tsc, biome, bun test, ratchets)
+# is already enforced by quality-gates.yml; master-ci still contributes
+# CodeQL analysis, structural AI-slop detection, Rust stack checks and the
+# aggregate gate.
+name: Master CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  required-quality-check:
+    uses: WasewaseX/master-ci/.github/workflows/required-quality.yml@ffeff755312f63d97c026f5eb5e826683e1dc8cf # v2.9.1
+    with:
+      profile: strict
+      run_node: false
+      scorecard_publish: false
+      template_repo: WasewaseX/master-ci
+      template_ref: ffeff755312f63d97c026f5eb5e826683e1dc8cf # v2.9.1
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write

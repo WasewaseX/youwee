@@ -84,7 +84,7 @@
   }
 }
 
-/* Theme: Midnight 🌙 */
+/* Theme: Midnight */
 [data-theme="midnight"] {
   --primary: 262 83% 58%;
   --primary-foreground: 0 0% 100%;
@@ -107,7 +107,7 @@
   --gradient-to: 320 75% 35%;
 }
 
-/* Theme: Aurora 🌌 */
+/* Theme: Aurora */
 [data-theme="aurora"] {
   --primary: 175 80% 40%;
   --primary-foreground: 0 0% 100%;
@@ -130,7 +130,7 @@
   --gradient-to: 220 90% 40%;
 }
 
-/* Theme: Sunset 🌅 */
+/* Theme: Sunset */
 [data-theme="sunset"] {
   --primary: 25 95% 53%;
   --primary-foreground: 0 0% 100%;
@@ -153,7 +153,7 @@
   --gradient-to: 45 85% 38%;
 }
 
-/* Theme: Ocean 🌊 */
+/* Theme: Ocean */
 [data-theme="ocean"] {
   --primary: 215 90% 55%;
   --primary-foreground: 0 0% 100%;
@@ -176,7 +176,7 @@
   --gradient-to: 230 85% 45%;
 }
 
-/* Theme: Forest 🌲 */
+/* Theme: Forest */
 [data-theme="forest"] {
   --primary: 152 75% 40%;
   --primary-foreground: 0 0% 100%;
@@ -199,7 +199,7 @@
   --gradient-to: 175 65% 30%;
 }
 
-/* Theme: Candy 🍬 */
+/* Theme: Candy */
 [data-theme="candy"] {
   --primary: 340 85% 55%;
   --primary-foreground: 0 0% 100%;

@@ -2,29 +2,29 @@
 
 <div align="center">
 
-  [![English](https://img.shields.io/badge/lang-English-blue)](../README.md)
-  [![Tiếng Việt](https://img.shields.io/badge/lang-Tiếng_Việt-red)](README.vi.md)
-  [![简体中文](https://img.shields.io/badge/lang-简体中文-green)](README.zh-CN.md)
-  ![Français](https://img.shields.io/badge/lang-Français-0055A4)
-  ![Русский](https://img.shields.io/badge/lang-Русский-1F5FBF)
-  ![العربية](https://img.shields.io/badge/lang-%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9-0A8F6A)
-  ![ไทย](https://img.shields.io/badge/lang-%E0%B9%84%E0%B8%97%E0%B8%A2-7B1FA2)
-  ![Português](https://img.shields.io/badge/lang-Português-009C3B)
-  ![日本語](https://img.shields.io/badge/lang-%E6%97%A5%E6%9C%AC%E8%AA%9E-E60012)
-  ![Español](https://img.shields.io/badge/lang-Espa%C3%B1ol-C60B1E)
-  [![Vote for next language](https://img.shields.io/badge/Vote-下一个语言-orange?logo=github)](https://github.com/vanloctech/youwee/discussions/18)
+[![English](https://img.shields.io/badge/lang-English-blue)](../README.md)
+[![Tiếng Việt](https://img.shields.io/badge/lang-Tiếng_Việt-red)](README.vi.md)
+[![简体中文](https://img.shields.io/badge/lang-简体中文-green)](README.zh-CN.md)
+![Français](https://img.shields.io/badge/lang-Français-0055A4)
+![Русский](https://img.shields.io/badge/lang-Русский-1F5FBF)
+![العربية](https://img.shields.io/badge/lang-%D8%A7%D9%84%D8%B9%D8%B1%D8%A8%D9%8A%D8%A9-0A8F6A)
+![ไทย](https://img.shields.io/badge/lang-%E0%B9%84%E0%B8%97%E0%B8%A2-7B1FA2)
+![Português](https://img.shields.io/badge/lang-Português-009C3B)
+![日本語](https://img.shields.io/badge/lang-%E6%97%A5%E6%9C%AC%E8%AA%9E-E60012)
+![Español](https://img.shields.io/badge/lang-Espa%C3%B1ol-C60B1E)
+[![Vote for next language](https://img.shields.io/badge/Vote-下一个语言-orange?logo=github)](https://github.com/vanloctech/youwee/discussions/18)
 
   <a href="https://youwee.app">
     <img src="../src-tauri/icons/icon.png" alt="Youwee Logo" width="128" height="128">
   </a>
-  
-  **美观强大的 yt-dlp GUI、视频下载与处理工具 - 免费开源**
 
-  [![Downloads](https://img.shields.io/github/downloads/vanloctech/youwee/total?label=Downloads)](https://github.com/vanloctech/youwee/releases)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-  [![Reddit](https://img.shields.io/badge/Reddit-r%2Fyouwee-FF4500?logo=reddit&logoColor=white)](https://www.reddit.com/r/youwee)
-  [![Website](https://img.shields.io/badge/Website-youwee.app-0EA5E9)](https://youwee.app)
-  [![Discord](https://img.shields.io/badge/Discord-Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/yCrs9hcw)
+**美观强大的 yt-dlp GUI、视频下载与处理工具 - 免费开源**
+
+[![Downloads](https://img.shields.io/github/downloads/vanloctech/youwee/total?label=Downloads)](https://github.com/vanloctech/youwee/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Reddit](https://img.shields.io/badge/Reddit-r%2Fyouwee-FF4500?logo=reddit&logoColor=white)](https://www.reddit.com/r/youwee)
+[![Website](https://img.shields.io/badge/Website-youwee.app-0EA5E9)](https://youwee.app)
+[![Discord](https://img.shields.io/badge/Discord-Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/yCrs9hcw)
 </div>
 
 ---
@@ -95,25 +95,26 @@ Youwee 是一个本地工具，用于下载和处理用户提供的 URL 中的�
 ### 下载适合您平台的版本
 
 > ⚠️ **注意**: 该应用尚未使用 Apple 开发者证书签名。如果 macOS 阻止应用运行，请执行：
+>
 > ```bash
 > xattr -cr /Applications/Youwee.app
 > ```
 
-| 平台 | 下载 |
-|------|------|
-| **Windows** (x64) | [下载 .msi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Windows.msi) · [下载 .exe](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Windows-Setup.exe) |
-| **macOS** (Apple Silicon) | [下载 .dmg](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Mac-Apple-Silicon.dmg) |
-| **macOS** (Intel) | [下载 .dmg](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Mac-Intel.dmg) |
-| **Linux** (x64) | [下载 .deb](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.deb) · [下载 .flatpak](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.flatpak) · [下载 .AppImage](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.AppImage)（AppImage 可能需要 FUSE） |
+| 平台                      | 下载                                                                                                                                                                                                                                                                                                                                |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Windows** (x64)         | [下载 .msi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Windows.msi) · [下载 .exe](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Windows-Setup.exe)                                                                                                                                 |
+| **macOS** (Apple Silicon) | [下载 .dmg](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Mac-Apple-Silicon.dmg)                                                                                                                                                                                                                             |
+| **macOS** (Intel)         | [下载 .dmg](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Mac-Intel.dmg)                                                                                                                                                                                                                                     |
+| **Linux** (x64)           | [下载 .deb](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.deb) · [下载 .flatpak](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.flatpak) · [下载 .AppImage](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Linux.AppImage)（AppImage 可能需要 FUSE） |
 
 > 在 [Releases 页面](https://github.com/vanloctech/youwee/releases) 查看所有版本
 
 ### 浏览器扩展（Chromium + Firefox）
 
-| 浏览器 | 下载 |
-|--------|------|
-| **Chromium**（Chrome/Edge/Brave/Opera/Vivaldi/Arc/Coc Coc） | [下载 .zip](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Chromium.zip) |
-| **Firefox** | [下载 .xpi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Firefox-signed.xpi) |
+| 浏览器                                                      | 下载                                                                                                           |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Chromium**（Chrome/Edge/Brave/Opera/Vivaldi/Arc/Coc Coc） | [下载 .zip](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Chromium.zip)       |
+| **Firefox**                                                 | [下载 .xpi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Firefox-signed.xpi) |
 
 - 一键将当前标签页发送到 Youwee（`Download now` 或 `Add to queue`）
 - 支持站点悬浮按钮可选择 `Video/Audio` 与清晰度

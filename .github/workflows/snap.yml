@@ -4,15 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'GitHub release tag to package, for example v0.17.0. Ignored when deb_url is set.'
+        description: "GitHub release tag to package, for example v0.17.0. Ignored when deb_url is set."
         required: false
         type: string
       deb_url:
-        description: 'Direct URL to Youwee-Linux.deb. Use this for old/test artifacts not attached to a release.'
+        description: "Direct URL to Youwee-Linux.deb. Use this for old/test artifacts not attached to a release."
         required: false
         type: string
       channel:
-        description: 'Snap Store channel to publish to when publish is enabled.'
+        description: "Snap Store channel to publish to when publish is enabled."
         required: true
         default: edge
         type: choice
@@ -22,7 +22,7 @@ on:
           - candidate
           - stable
       publish:
-        description: 'Publish the generated snap to the Snap Store.'
+        description: "Publish the generated snap to the Snap Store."
         required: true
         default: false
         type: boolean

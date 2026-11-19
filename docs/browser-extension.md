@@ -50,10 +50,10 @@ Popup sending works for all valid HTTP/HTTPS pages.
 
 ## Download Packages (Users)
 
-| Browser | Download |
-|---------|----------|
-| **Chromium** (Chrome/Edge/Brave/Opera/Vivaldi/Arc/Coc Coc) | [Download .zip](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Chromium.zip) |
-| **Firefox** | [Download .xpi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Firefox-signed.xpi) |
+| Browser                                                    | Download                                                                                                           |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Chromium** (Chrome/Edge/Brave/Opera/Vivaldi/Arc/Coc Coc) | [Download .zip](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Chromium.zip)       |
+| **Firefox**                                                | [Download .xpi](https://github.com/vanloctech/youwee/releases/latest/download/Youwee-Extension-Firefox-signed.xpi) |
 
 ## Install Guide
 
