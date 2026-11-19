@@ -28,17 +28,17 @@
 
   const ACTION_ICONS = {
     download:
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path></svg>',
     queue:
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h10"></path><path d="M4 12h10"></path><path d="M4 17h7"></path><path d="M18 10v8"></path><path d="M14 14h8"></path></svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h10"></path><path d="M4 12h10"></path><path d="M4 17h7"></path><path d="M18 10v8"></path><path d="M14 14h8"></path></svg>',
     summary:
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3Z"></path><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"></path></svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3Z"></path><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"></path></svg>',
   };
   const CONTROL_ICONS = {
     collapse:
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 12h12"></path></svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 12h12"></path></svg>',
     close:
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>',
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>',
   };
 
   function isTrustedUserEvent(event) {
@@ -152,6 +152,7 @@
   const X_BUTTON_CLASS = 'youwee-x-btn';
   let xObserver = null;
   let xScanQueued = false;
+  let xScanFrameId = 0;
 
   function getTweetUrl(article) {
     // The first timestamp link is the tweet's own permalink (a quoted tweet's comes later).
@@ -187,6 +188,10 @@
 
   function injectXButtons() {
     xScanQueued = false;
+    // A frame queued before the extension was disabled still fires here and
+    // would resurrect the buttons cleanup just removed. Re-check the setting
+    // before scanning, exactly like the disable path does.
+    if (!isEnabled()) return;
     for (const article of document.querySelectorAll('article[data-testid="tweet"]')) {
       if (article.querySelector(`.${X_BUTTON_CLASS}`)) continue;
       // Before playback X renders only a thumbnail (`*_video_thumb`) with a play button.
@@ -215,13 +220,20 @@
   function queueXScan() {
     if (xScanQueued) return;
     xScanQueued = true;
-    window.requestAnimationFrame(injectXButtons);
+    xScanFrameId = window.requestAnimationFrame(injectXButtons);
   }
 
   function syncXButtons() {
     if (!isXPage() || !isEnabled()) {
       xObserver?.disconnect();
       xObserver = null;
+      // Cancel any scan already queued with the observer so a pending frame
+      // cannot recreate the buttons after this cleanup (F5).
+      if (xScanFrameId) {
+        window.cancelAnimationFrame(xScanFrameId);
+        xScanFrameId = 0;
+      }
+      xScanQueued = false;
       for (const button of document.querySelectorAll(`.${X_BUTTON_CLASS}`)) {
         button.remove();
       }

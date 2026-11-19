@@ -12,6 +12,10 @@ interface BrowserCookieErrorDialogProps {
   onRetry: () => void;
   onDismiss: () => void;
   onGoToSettings?: () => void;
+  /** Opens the browser-profile selector (Network & Auth section). Used by the
+   *  profile_not_found primary action so users actually reach the profile
+   *  picker instead of the General settings tab. */
+  onChooseProfile?: () => void;
 }
 
 const isMacOS = typeof navigator !== 'undefined' && navigator.platform.includes('Mac');
@@ -28,6 +32,7 @@ export function BrowserCookieErrorDialog({
   onRetry,
   onDismiss,
   onGoToSettings,
+  onChooseProfile,
 }: BrowserCookieErrorDialogProps) {
   const { t } = useTranslation('common');
   const browser = browserName.charAt(0).toUpperCase() + browserName.slice(1).toLowerCase();
@@ -49,6 +54,16 @@ export function BrowserCookieErrorDialog({
       }
     : undefined;
 
+  // The profile shortcut must land on the profile selector, not General:
+  // when no dedicated onChooseProfile is wired the generic settings button
+  // is still available below, but the primary action prefers the picker.
+  const chooseProfile = onChooseProfile
+    ? () => {
+        onDismiss();
+        onChooseProfile();
+      }
+    : undefined;
+
   // The most useful next step depends on the cause: fix permissions, pick a profile, or retry.
   const primary =
     kind === 'access_denied' && isMacOS
@@ -57,8 +72,12 @@ export function BrowserCookieErrorDialog({
           icon: <ShieldAlert className="w-4 h-4 mr-2" />,
           onClick: openPrivacySettings,
         }
-      : kind === 'profile_not_found' && goToSettings
-        ? { label: t('cookieErrorDialog.chooseProfile'), icon: null, onClick: goToSettings }
+      : kind === 'profile_not_found' && (chooseProfile || goToSettings)
+        ? {
+            label: t('cookieErrorDialog.chooseProfile'),
+            icon: null,
+            onClick: chooseProfile ?? goToSettings!,
+          }
         : {
             label: t('cookieErrorDialog.retry'),
             icon: <RefreshCw className="w-4 h-4 mr-2" />,

@@ -7,8 +7,9 @@ use crate::services::{
     get_ffmpeg_path, get_ffmpeg_source, get_latest_ffmpeg_release_info, get_system_gallerydl_path,
     get_ytdlp_channel, get_ytdlp_channel_download_url, get_ytdlp_download_info, get_ytdlp_source,
     get_ytdlp_version_internal, parse_ffmpeg_version, set_ffmpeg_source, set_ytdlp_channel,
-    set_ytdlp_source, system_ffmpeg_upgrade_message, system_ytdlp_upgrade_message, verify_sha256,
-    write_app_ffmpeg_release_version, DenoUpdateInfo, FfmpegUpdateInfo, GalleryDlUpdateInfo,
+    set_ytdlp_source, system_ffmpeg_upgrade_message, system_ytdlp_upgrade_message,
+    verify_downloaded_binary, verify_sha256, write_app_ffmpeg_release_version, DenoUpdateInfo,
+    FfmpegUpdateInfo, GalleryDlUpdateInfo,
 };
 use crate::types::{
     BackendError, DenoStatus, DependencySource, FfmpegStatus, GalleryDlStatus, YtdlpAllVersions,
@@ -950,6 +951,13 @@ pub async fn download_gallerydl(app: AppHandle) -> Result<String, String> {
         tokio::fs::set_permissions(&temp_path, std::fs::Permissions::from_mode(0o755))
             .await
             .map_err(|e| format!("Failed to set permissions: {}", e))?;
+    }
+    // Verify the downloaded binary actually RUNS on this machine BEFORE it
+    // replaces the installed copy: on failure remove the temp file and keep
+    // the previous working installation.
+    if let Err(err) = verify_downloaded_binary(&temp_path).await {
+        let _ = tokio::fs::remove_file(&temp_path).await;
+        return Err(err);
     }
     tokio::fs::rename(&temp_path, &binary_path)
         .await

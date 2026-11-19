@@ -7,6 +7,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Sửa lỗi
+- **Cứng hóa icon trong popup** - Dựng các nút hành động trong popup (icon kèm nhãn) bằng DOM parser và `createElement` thay vì gán `innerHTML` trực tiếp, xử lý phát hiện phân tích tĩnh "Direct innerHTML assignment can lead to XSS" trong extensions/youwee-webext/src/popup.js
+
 ## [0.21.0] - 2026-11-13
 
 ### Thêm mới
