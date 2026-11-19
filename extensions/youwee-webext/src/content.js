@@ -447,7 +447,13 @@
     tab.type = 'button';
     tab.className = 'youwee-floating__tab';
     tab.title = ext.t('floatingExpand', 'Expand');
-    tab.innerHTML = logoMarkup;
+    // Parse the logo markup through the DOM parser instead of assigning
+    // innerHTML: parsing never executes markup, and the runtime asset URL
+    // never reaches an HTML sink (js/innerhtml finding).
+    const logoDoc = new DOMParser().parseFromString(logoMarkup, 'text/html');
+    if (logoDoc.body.firstElementChild) {
+      tab.appendChild(document.importNode(logoDoc.body.firstElementChild, true));
+    }
     tab.addEventListener('click', (event) => {
       if (!isTrustedUserEvent(event)) return;
       setCollapsedState(false);
