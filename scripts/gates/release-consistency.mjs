@@ -29,9 +29,7 @@ if (fs.existsSync(tmplPath)) {
   const tmpl = fs.readFileSync(tmplPath, 'utf8');
   for (const entry of [...required, 'Exec={{exec}}', 'Name={{name}}']) {
     if (!tmpl.includes(entry)) {
-      violations.push(
-        `src-tauri/desktop/youwee.desktop.tmpl: missing required entry "${entry}"`,
-      );
+      violations.push(`src-tauri/desktop/youwee.desktop.tmpl: missing required entry "${entry}"`);
     }
   }
   if (!tmpl.includes('Network;')) {
@@ -43,9 +41,7 @@ if (fs.existsSync(tmplPath)) {
   const desktop = fs.readFileSync(desktopPath, 'utf8');
   for (const entry of required) {
     if (!desktop.includes(entry)) {
-      violations.push(
-        `src-tauri/linux/youwee.desktop: missing required entry "${entry}"`,
-      );
+      violations.push(`src-tauri/linux/youwee.desktop: missing required entry "${entry}"`);
     }
   }
   if (!desktop.includes('Network;')) {

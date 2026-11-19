@@ -339,8 +339,10 @@
   height: 34px;
   margin-right: 4px;
   padding: 0;
-  border: 0;
-  border-radius: 999px;
+  /* AGENTS.md action-button pattern: rounded-md radius + dashed border
+     (hover effects below). Was 0 border / 999px pill. */
+  border: 1px dashed rgb(113, 118, 123);
+  border-radius: 0.375rem;
   background: transparent;
   color: rgb(113, 118, 123);
   display: inline-flex;
@@ -349,11 +351,13 @@
   cursor: pointer;
   transition:
     background-color 0.2s,
-    color 0.2s;
+    color 0.2s,
+    border-color 0.2s;
 }
 
 .youwee-x-btn:hover,
 .youwee-x-btn:focus-visible {
+  border-color: #f43f5e;
   background: rgba(244, 63, 94, 0.1);
   color: #f43f5e;
   outline: none;

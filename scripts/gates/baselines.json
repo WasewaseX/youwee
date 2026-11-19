@@ -66,7 +66,7 @@
       "sdk-js/src/runtime.ts": 2,
       "src-tauri/src/commands/channels.rs": 93,
       "src-tauri/src/commands/cli.rs": 32,
-      "src-tauri/src/commands/dependencies.rs": 727,
+      "src-tauri/src/commands/dependencies.rs": 735,
       "src-tauri/src/commands/download.rs": 2381,
       "src-tauri/src/commands/metadata.rs": 305,
       "src-tauri/src/commands/processing.rs": 431,

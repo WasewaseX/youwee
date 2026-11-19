@@ -67,7 +67,13 @@ export function GalleryDlInstall() {
   if (galleryDlStatus.can_install) {
     return (
       <div className="space-y-1">
-        <Button size="sm" onClick={() => void downloadGalleryDl()} disabled={galleryDlLoading}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="rounded-md border-dashed"
+          onClick={() => void downloadGalleryDl()}
+          disabled={galleryDlLoading}
+        >
           {galleryDlInstallError ? <RefreshCw /> : <Download />}
           {galleryDlInstallError
             ? t('dependencies.retryInstall')

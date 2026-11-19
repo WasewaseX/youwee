@@ -11,6 +11,7 @@ import {
 } from '@/components/download';
 import { FFmpegRequiredDialog } from '@/components/FFmpegRequiredDialog';
 import { FreshCookieRequiredDialog } from '@/components/FreshCookieRequiredDialog';
+import type { SettingsSectionId } from '@/components/settings';
 import { ThemePicker } from '@/components/settings/ThemePicker';
 import { Button } from '@/components/ui/button';
 import { useDependencies } from '@/contexts/DependenciesContext';
@@ -24,7 +25,7 @@ import { cn } from '@/lib/utils';
 const FFMPEG_REQUIRED_QUALITIES: Quality[] = ['best', '8k', '4k', '2k'];
 
 interface UniversalPageProps {
-  onNavigateToSettings?: () => void;
+  onNavigateToSettings?: (section?: SettingsSectionId) => void;
 }
 
 export function UniversalPage({ onNavigateToSettings }: UniversalPageProps) {
@@ -266,6 +267,8 @@ export function UniversalPage({ onNavigateToSettings }: UniversalPageProps) {
             onRetry={() => retryFailedDownload(itemId)}
             onDismiss={clearCookieError}
             onGoToSettings={onNavigateToSettings}
+            // Reach the actual profile selector (Network & Auth), not General.
+            onChooseProfile={() => onNavigateToSettings?.('network')}
           />
         );
       })()}

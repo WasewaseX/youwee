@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Stdio;
 
 use tauri::{AppHandle, Manager};
@@ -42,6 +42,31 @@ fn get_app_gallerydl_path(app: &AppHandle) -> Option<PathBuf> {
 
 pub fn get_gallerydl_path(app: &AppHandle) -> Option<PathBuf> {
     get_system_gallerydl_path().or_else(|| get_app_gallerydl_path(app))
+}
+
+/// Runs a freshly downloaded gallery-dl binary with `--version` to confirm it
+/// actually executes on this machine BEFORE it replaces the installed copy:
+/// a checksum-valid release can still be unusable (glibc mismatch, wrong
+/// architecture), and the old update flow only found out after the rename,
+/// leaving no working gallery-dl at all.
+pub async fn verify_downloaded_binary(path: &Path) -> Result<(), String> {
+    let mut verify = Command::new(path);
+    verify
+        .arg("--version")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    verify.hide_window();
+    let output = verify
+        .output()
+        .await
+        .map_err(|e| format!("Failed to run downloaded gallery-dl: {}", e))?;
+    if !output.status.success() {
+        return Err(format!(
+            "Downloaded gallery-dl failed to run (exit status {:?}).",
+            output.status.code()
+        ));
+    }
+    Ok(())
 }
 
 pub async fn check_gallerydl_internal(app: &AppHandle) -> Result<GalleryDlStatus, String> {

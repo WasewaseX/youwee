@@ -214,12 +214,16 @@ function AppContent() {
   // Sync UI language to system tray on mount
   useEffect(() => {
     const lang = localStorage.getItem('i18nextLng') || 'en';
-    invoke('rebuild_tray_menu_cmd', { lang }).catch(() => {});
+    invoke('rebuild_tray_menu_cmd', { lang }).catch((error) => {
+      console.error('[app] failed to rebuild tray menu:', error);
+    });
 
     // Sync hideDockOnClose preference to Rust on startup
     const hideDock = localStorage.getItem('youwee_hide_dock_on_close') === 'true';
     if (hideDock) {
-      invoke('set_hide_dock_on_close', { hide: true }).catch(() => {});
+      invoke('set_hide_dock_on_close', { hide: true }).catch((error) => {
+        console.error('[app] failed to sync hideDockOnClose:', error);
+      });
     }
   }, []);
 
@@ -227,10 +231,14 @@ function AppContent() {
     <>
       <MainLayout currentPage={currentPage} onPageChange={setCurrentPage}>
         {currentPage === 'youtube' && (
-          <DownloadPage onNavigateToSettings={() => openSettingsPage('general')} />
+          <DownloadPage
+            onNavigateToSettings={(section) => openSettingsPage(section ?? 'general')}
+          />
         )}
         {currentPage === 'universal' && (
-          <UniversalPage onNavigateToSettings={() => openSettingsPage('general')} />
+          <UniversalPage
+            onNavigateToSettings={(section) => openSettingsPage(section ?? 'general')}
+          />
         )}
         {currentPage === 'gallery' && (
           <GalleryPage onNavigateToSettings={openDependenciesSettings} />

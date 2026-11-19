@@ -109,16 +109,26 @@ export function AIProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Late catalog responses must not clobber the model list of a provider the
+  // user switched to while the request was in flight (the Infistar catalog
+  // can take up to ~20s). The ref tracks the most recently REQUESTED
+  // provider; only its response may update `models`.
+  const requestedProviderRef = useRef<AIProviderType | null>(null);
+
   const loadModels = useCallback(async (provider: AIProviderType) => {
+    requestedProviderRef.current = provider;
+    const requested = provider;
     try {
       // Infistar's list comes from its live catalog (cached by the backend) and is grouped by brand.
       const modelList =
         provider === 'infistar'
           ? await invoke<ModelOption[]>('get_infistar_models')
           : await invoke<ModelOption[]>('get_ai_models', { provider });
+      if (requestedProviderRef.current !== requested) return; // stale response
       setModels(modelList);
     } catch (error) {
       console.error('Failed to load models:', error);
+      if (requestedProviderRef.current !== requested) return; // stale failure
       setModels([]);
     }
   }, []);
@@ -216,7 +226,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
         transcriptError = extractErrorMessage(error);
 
         if (import.meta.env.DEV) {
-          console.log('[AI] Transcript fetch failed, trying Whisper fallback:', transcriptError);
+          console.debug('[AI] Transcript fetch failed, trying Whisper fallback:', transcriptError);
         }
       }
 
@@ -227,7 +237,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
 
         if (whisperKey) {
           if (import.meta.env.DEV) {
-            console.log('[AI] Using Whisper transcription for:', url);
+            console.debug('[AI] Using Whisper transcription for:', url);
           }
 
           try {
@@ -313,7 +323,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
 
       // Don't start if already running
       if (activeTasksRef.current.has(historyId)) {
-        console.log(`[AI] Task already running for historyId=${historyId}`);
+        console.info(`[AI] Task already running for historyId=${historyId}`);
         return;
       }
 
@@ -321,7 +331,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
 
       // Log task start (for debugging)
       if (import.meta.env.DEV) {
-        console.log(`[AI] Starting summary task:`, { historyId, url });
+        console.debug(`[AI] Starting summary task:`, { historyId, url });
       }
 
       // Initialize task
@@ -336,12 +346,12 @@ export function AIProvider({ children }: { children: ReactNode }) {
         try {
           // Fetch transcript
           if (import.meta.env.DEV) {
-            console.log(`[AI] Fetching transcript for URL with fallback chain: ${url}`);
+            console.debug(`[AI] Fetching transcript for URL with fallback chain: ${url}`);
           }
           const transcript = await fetchTranscript(url);
 
           if (import.meta.env.DEV) {
-            console.log(
+            console.debug(
               `[AI] Got transcript (${transcript.length} chars), first 200:`,
               transcript.slice(0, 200),
             );
@@ -358,7 +368,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
           });
 
           if (import.meta.env.DEV) {
-            console.log(
+            console.debug(
               `[AI] Generated summary for historyId=${historyId}:`,
               summary.slice(0, 100),
             );
@@ -413,14 +423,14 @@ export function AIProvider({ children }: { children: ReactNode }) {
 
       // Don't start if already running
       if (activeTasksRef.current.has(taskId)) {
-        console.log(`[AI] Task already running for taskId=${taskId}`);
+        console.info(`[AI] Task already running for taskId=${taskId}`);
         return;
       }
 
       activeTasksRef.current.add(taskId);
 
       if (import.meta.env.DEV) {
-        console.log(`[AI] Starting queue summary task:`, { taskId, itemInfo });
+        console.debug(`[AI] Starting queue summary task:`, { taskId, itemInfo });
       }
 
       // Initialize task
@@ -457,7 +467,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
           });
 
           if (import.meta.env.DEV) {
-            console.log(`[AI] Queue summary completed and saved to history:`, taskId);
+            console.debug(`[AI] Queue summary completed and saved to history:`, taskId);
           }
 
           // Complete

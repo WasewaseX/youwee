@@ -377,7 +377,9 @@ export function SetupDialog({ items, onClose, onOpenDependencies }: SetupDialogP
                   {t('setupDialog.later')}
                 </Button>
                 <Button
+                  variant="outline"
                   size="sm"
+                  className="rounded-md border-dashed"
                   disabled={isBusy || !hasPendingAction}
                   onClick={() => void installAll()}
                 >
