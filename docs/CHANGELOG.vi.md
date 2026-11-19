@@ -7,6 +7,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Bảo mật
+- **Cứng hóa nút tải X** - Chèn icon SVG tĩnh của nút tải trên X/Twitter qua DOM parser thay vì gán `innerHTML` trực tiếp, xử lý phát hiện phân tích tĩnh "Direct innerHTML assignment can lead to XSS" trong extensions/youwee-webext/src/content.js
+
 ## [0.21.0] - 2026-11-13
 
 ### Thêm mới

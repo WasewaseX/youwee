@@ -166,7 +166,12 @@
     button.className = X_BUTTON_CLASS;
     button.title = label;
     button.setAttribute('aria-label', label);
-    button.innerHTML = ACTION_ICONS.download;
+    // Parse the static SVG icon through the DOM parser instead of assigning
+    // innerHTML: parsing never executes markup (js/innerhtml finding).
+    const iconDoc = new DOMParser().parseFromString(ACTION_ICONS.download, 'image/svg+xml');
+    if (iconDoc.documentElement) {
+      button.appendChild(document.importNode(iconDoc.documentElement, true));
+    }
     button.addEventListener('click', (event) => {
       // Keep X from opening the tweet behind the button.
       event.preventDefault();
