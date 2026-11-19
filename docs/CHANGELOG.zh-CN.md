@@ -7,6 +7,9 @@ Youwee 的所有重要更改都将记录在此文件中。
 
 ## [Unreleased]
 
+### 安全性
+- **弹出窗口图标 DOM 加固** - 通过 DOM 解析器和 `createElement` 构建弹出窗口的操作按钮（图标加标签），取代直接的 `innerHTML` 赋值，处理 extensions/youwee-webext/src/popup.js 中"Direct innerHTML assignment can lead to XSS"静态分析发现
+
 ## [0.21.0] - 2026-11-13
 
 ### 新增

@@ -301,11 +301,17 @@
   }
 
   function setActionButtonContent(button, icon, label) {
-    button.innerHTML = `${icon}<span></span>`;
-    const labelEl = button.querySelector('span');
-    if (labelEl) {
-      labelEl.textContent = label;
+    // Parse the static SVG icon through the DOM parser instead of assigning
+    // innerHTML: parsing never executes markup and keeps the label out of the
+    // HTML string entirely (js/innerhtml finding).
+    const iconDoc = new DOMParser().parseFromString(icon, 'image/svg+xml');
+    button.replaceChildren();
+    if (iconDoc.documentElement) {
+      button.appendChild(document.importNode(iconDoc.documentElement, true));
     }
+    const labelEl = document.createElement('span');
+    labelEl.textContent = label;
+    button.appendChild(labelEl);
   }
 
   function getMediaValue() {
