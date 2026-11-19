@@ -7,6 +7,9 @@ Youwee 的所有重要更改都将记录在此文件中。
 
 ## [Unreleased]
 
+### 安全性
+- **悬浮小组件 DOM 加固** - 通过 DOM 解析器构建悬浮小组件标签页的 logo，取代直接的 `innerHTML` 赋值，使运行时资源 URL 永远不会进入 HTML sink，处理 extensions/youwee-webext/src/content.js 中"Direct innerHTML assignment can lead to XSS"静态分析发现
+
 ## [0.21.0] - 2026-11-13
 
 ### 新增

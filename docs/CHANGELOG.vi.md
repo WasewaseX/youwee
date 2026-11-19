@@ -7,6 +7,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Bảo mật
+- **Cứng hóa widget nổi** - Dựng logo tab của widget nổi qua DOM parser thay vì gán `innerHTML` trực tiếp, để URL asset runtime không bao giờ chạm vào HTML sink, xử lý phát hiện phân tích tĩnh "Direct innerHTML assignment can lead to XSS" trong extensions/youwee-webext/src/content.js
+
 ## [0.21.0] - 2026-11-13
 
 ### Thêm mới

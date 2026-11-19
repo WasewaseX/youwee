@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- **Floating widget DOM hardening** - Build the floating widget tab logo through the DOM parser instead of a direct `innerHTML` assignment, so the runtime asset URL never reaches an HTML sink, closing the "Direct innerHTML assignment can lead to XSS" static-analysis finding in extensions/youwee-webext/src/content.js
+
 ## [0.21.0] - 2026-11-13
 
 ### Added
