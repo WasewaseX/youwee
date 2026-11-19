@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- **X download button DOM hardening** - Insert the X/Twitter download button's static SVG icon through the DOM parser instead of a direct `innerHTML` assignment, closing the "Direct innerHTML assignment can lead to XSS" static-analysis finding in extensions/youwee-webext/src/content.js
+
 ## [0.21.0] - 2026-11-13
 
 ### Added
