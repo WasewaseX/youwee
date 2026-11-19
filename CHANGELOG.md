@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Popup icon DOM hardening** - Build the popup action buttons (icon plus label) through the DOM parser and `createElement` instead of a direct `innerHTML` assignment, closing the "Direct innerHTML assignment can lead to XSS" static-analysis finding in extensions/youwee-webext/src/popup.js
+- **Channel counts error logging** - Log failures when refreshing per-channel new-video counts instead of swallowing them silently, matching how the followed-channels refresh reports its errors, so a broken command or backend shows up in the developer console
 
 ## [0.21.0] - 2026-11-13
 

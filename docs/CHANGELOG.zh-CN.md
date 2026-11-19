@@ -9,6 +9,7 @@ Youwee 的所有重要更改都将记录在此文件中。
 
 ### 修复
 - **弹出窗口图标 DOM 加固** - 通过 DOM 解析器和 `createElement` 构建弹出窗口的操作按钮（图标加标签），取代直接的 `innerHTML` 赋值，处理 extensions/youwee-webext/src/popup.js 中"Direct innerHTML assignment can lead to XSS"静态分析发现
+- **频道计数错误日志** - 刷新各频道新视频计数失败时记录日志，不再静默吞掉错误，与已关注频道刷新的报告方式一致，使命令或后端故障能在开发者控制台中显现
 
 ## [0.21.0] - 2026-11-13
 
