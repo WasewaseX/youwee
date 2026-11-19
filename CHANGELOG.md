@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- **SDK plugin loader hardening** - Validate that an ESM plugin entrypoint (`.mjs`/`.mts`/`.ts`) exists as a regular file before the SDK CLI imports it, failing with a clear message instead of a raw module-not-found stack trace, and document why the loader keeps a native `import()` wrapper to address the "Use of new Function()" static-analysis finding in sdk-js/src/runtime-cli.ts
+
 ## [0.21.0] - 2026-11-13
 
 ### Added

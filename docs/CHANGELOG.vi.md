@@ -7,6 +7,9 @@ và dự án tuân theo [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Bảo mật
+- **Cứng hóa trình nạp plugin của SDK** - Kiểm tra điểm vào plugin ESM (`.mjs`/`.mts`/`.ts`) tồn tại dưới dạng file thường trước khi SDK CLI import, trả về thông báo rõ ràng thay vì stack trace module-not-found, đồng thời giải thích lý do trình nạp giữ wrapper `import()` gốc để xử lý phát hiện phân tích tĩnh "Use of new Function()" trong sdk-js/src/runtime-cli.ts
+
 ## [0.21.0] - 2026-11-13
 
 ### Thêm mới

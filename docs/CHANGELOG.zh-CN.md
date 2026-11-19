@@ -7,6 +7,9 @@ Youwee 的所有重要更改都将记录在此文件中。
 
 ## [Unreleased]
 
+### 安全性
+- **SDK 插件加载器加固** - 在 SDK CLI 导入 ESM 插件入口（`.mjs`/`.mts`/`.ts`）之前，先验证其存在且为常规文件，并以清晰的错误信息代替原始的 module-not-found 堆栈；同时说明加载器保留原生 `import()` 包装的原因，以处理 sdk-js/src/runtime-cli.ts 中的"Use of new Function()"静态分析告警
+
 ## [0.21.0] - 2026-11-13
 
 ### 新增
