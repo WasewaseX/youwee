@@ -23,9 +23,15 @@ const counters = {
 
 const changed = new Set(changedFiles());
 
-function pushFinding(bucket, file, line, message, isChangedFile) {
+function pushFinding(bucket, file, line, message, _isChangedFile) {
   const hit = `${file}:${line}: ${message}`;
-  if (isChangedFile) {
+  // Conflict markers stay zero-tolerance: always blocking, tree-wide.
+  // Every other pattern goes through the ratchet even for PR-touched
+  // files. On the upstream-content review base, zero-tolerance on touch
+  // would permanently block any PR editing one of upstream's pre-existing
+  // debt files. Debt growth is still blocking; floors come from
+  // calibrate-baselines.mjs.
+  if (bucket === 'bug.conflictMarker') {
     zeroTolerance.push(hit);
   } else {
     counters[bucket][file] = (counters[bucket][file] ?? 0) + 1;
