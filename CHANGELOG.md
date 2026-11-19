@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Popup icon DOM hardening** - Build the popup action buttons (icon plus label) through the DOM parser and `createElement` instead of a direct `innerHTML` assignment, closing the "Direct innerHTML assignment can lead to XSS" static-analysis finding in extensions/youwee-webext/src/popup.js
+
 ## [0.21.0] - 2026-11-13
 
 ### Added
