@@ -19,19 +19,18 @@ if (cargoVersion && cargoVersion !== tauri.version) {
   violations.push(`version mismatch: Cargo.toml=${cargoVersion} tauri.conf.json=${tauri.version}`);
 }
 
+const required = ['[Desktop Entry]', 'Categories=', 'Type=Application'];
+// The fork builds the deb entry from a custom template; upstream ships
+// src-tauri/linux/youwee.desktop with the same placeholder style. Both
+// must keep the issue #127 Network category.
 const tmplPath = path.join(REPO_ROOT, 'src-tauri/desktop/youwee.desktop.tmpl');
+const desktopPath = path.join(REPO_ROOT, 'src-tauri/linux/youwee.desktop');
 if (fs.existsSync(tmplPath)) {
   const tmpl = fs.readFileSync(tmplPath, 'utf8');
-  for (const required of [
-    '[Desktop Entry]',
-    'Categories=',
-    'Exec={{exec}}',
-    'Name={{name}}',
-    'Type=Application',
-  ]) {
-    if (!tmpl.includes(required)) {
+  for (const entry of [...required, 'Exec={{exec}}', 'Name={{name}}']) {
+    if (!tmpl.includes(entry)) {
       violations.push(
-        `src-tauri/desktop/youwee.desktop.tmpl: missing required entry "${required}"`,
+        `src-tauri/desktop/youwee.desktop.tmpl: missing required entry "${entry}"`,
       );
     }
   }
@@ -40,7 +39,23 @@ if (fs.existsSync(tmplPath)) {
       'src-tauri/desktop/youwee.desktop.tmpl: Categories must include Network; (issue #127)',
     );
   }
+} else if (fs.existsSync(desktopPath)) {
+  const desktop = fs.readFileSync(desktopPath, 'utf8');
+  for (const entry of required) {
+    if (!desktop.includes(entry)) {
+      violations.push(
+        `src-tauri/linux/youwee.desktop: missing required entry "${entry}"`,
+      );
+    }
+  }
+  if (!desktop.includes('Network;')) {
+    violations.push(
+      'src-tauri/linux/youwee.desktop: Categories must include Network; (issue #127)',
+    );
+  }
 } else {
-  violations.push('src-tauri/desktop/youwee.desktop.tmpl: file missing (issue #127 regression)');
+  violations.push(
+    'no desktop entry template found (expected src-tauri/desktop/youwee.desktop.tmpl or src-tauri/linux/youwee.desktop, issue #127 regression)',
+  );
 }
 failBlocking('RELEASE CONSISTENCY', violations);
