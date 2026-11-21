@@ -453,8 +453,10 @@ export function useChannelsController(): ChannelsContextType {
         }
       }
       setChannelNewCounts(counts);
-    } catch (_error) {
-      // ignore
+    } catch (error) {
+      // Match refreshFollowedChannels: report the failure instead of
+      // swallowing it, while keeping the previous counts on screen.
+      console.error('Failed to refresh channel new-video counts:', error);
     }
   }, []);
 

@@ -88,7 +88,7 @@
       "src/contexts/DependenciesContext.tsx": 14,
       "src/contexts/DownloadContext.tsx": 1334,
       "src/contexts/UniversalContext.tsx": 697,
-      "src/contexts/channels/useChannelsController.ts": 747,
+      "src/contexts/channels/useChannelsController.ts": 749,
       "src/contexts/processing/useProcessingController.ts": 245,
       "src/i18n/locales/ar/settings.json": 142,
       "src/i18n/locales/en/settings.json": 147,
